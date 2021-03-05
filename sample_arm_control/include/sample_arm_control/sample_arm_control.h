@@ -11,6 +11,7 @@ public:
 SampleArmControl(int argc, char **argv);
 ~SampleArmControl();
 
+// Move end effector to a target pose in planning frame
 bool move(const geometry_msgs::Pose &target_pose);
 
 private:
