@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  geometry_msgs
 )
 
 find_package(Eigen3 REQUIRED)
@@ -18,10 +19,11 @@ find_package(Eigen3 REQUIRED)
 catkin_package(
   CATKIN_DEPENDS
     actionlib
-	move_base_msgs
+	  move_base_msgs
   	roscpp
   	rospy
   	std_msgs
+    geometry_msgs
 )
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
@@ -34,4 +36,3 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}_node.cpp)
 target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 install(TARGETS ${PROJECT_NAME}_node DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-

@@ -1,52 +1,58 @@
 #include "sample_move_control.h"
+#include <move_base_msgs/MoveBaseAction.h>
+#include <string>
+
 
 SampleMoveControl::SampleMoveControl(int argc, char **argv) :
-	nh_(new ros::NodeHandle()),
-	pnh_(new ros::NodeHandle("~")) {
-	goal_publisher = nh_->advertise<move_base_msgs::MoveBaseActionGoal>("bvr_SIM/move_base/goal", 10);
-	ROS_INFO("Initialized SampleMoveControl");
+  nh_(new ros::NodeHandle()) {
+  init();
+  ROS_INFO("Initialized SampleMoveControl");
 }
+
 
 SampleMoveControl::~SampleMoveControl() {
-	nh_.reset();
-	pnh_.reset();
+  nh_.reset();
 }
 
-bool SampleMoveControl::move(const geometry_msgs::Pose &target_pose) {
-	// MoveBaseClient ac("move_base", true);
 
-	// move_base_msgs::MoveBaseGoal goal;
-	// goal.target_pose.pose.position = target_pose.position;
-
-	// goal.target_pose.header.frame_id = "bvr_SIM/bvr_base_link";
-	// goal.target_pose.header.stamp = ros::Time::now();
-
-	// ROS_INFO("Sending goal");
-	// ac.sendGoal(goal);
-	// ac.waitForResult(ros::Duration(5.0));
-
-	// if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
-	// 	ROS_INFO("Hooray!");
-	// 	return 0;
-	// }
-	// else{
-	// 	ROS_INFO("FUCK!!!");
-	// 	return -1;
-	// }
-
-	move_base_msgs::MoveBaseActionGoal goal;
-	goal.goal.target_pose.pose.position = target_pose.position;
-	goal.goal.target_pose.pose.orientation = target_pose.orientation;
-
-	goal.header.frame_id = "bvr_SIM/bvr_base_link";
-	goal.header.stamp = ros::Time::now();
-
-	// geometry_msgs::PoseStamped goal_msg;
-	// goal_msg.header.frame_id = "bvr_SIM/bvr_base_link";
-	// goal_msg.header.stamp = ros::Time::now();
-	// goal_msg.pose = target_pose;
-	goal_publisher.publish(goal);
-
-	return true;
+void SampleMoveControl::init() {
+  goal_publisher_ = nh_->advertise<move_base_msgs::MoveBaseActionGoal>("/bvr_SIM/move_base/goal", 10);
+  goal_status_subscriber_ = nh_->subscribe("/bvr_SIM/move_base/status", 10, &SampleMoveControl::moveBaseStateCallback, this);
+  sample_move_base_status_ = 0;
 }
 
+
+void SampleMoveControl::moveBaseStateCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg) {
+  if (!msg->status_list.empty()) {
+    sample_move_base_status_ = msg->status_list.begin()->status;
+  }
+}
+
+
+bool SampleMoveControl::publishGoal(const geometry_msgs::Pose &target_pose) {
+  // Keep publishing goals until move-base status is not pending
+  if (!sample_move_base_status_) {
+    const auto time_now = ros::Time::now();
+
+    move_base_msgs::MoveBaseActionGoal goal;
+    goal.goal.target_pose.pose.position = target_pose.position;
+    goal.goal.target_pose.pose.orientation = target_pose.orientation;
+    goal.goal.target_pose.header.stamp = time_now;
+    goal.goal.target_pose.header.frame_id = "map";
+
+    goal.header.frame_id = "bvr_SIM/bvr_base_link";
+    goal.header.stamp = time_now;
+
+    goal.goal_id.stamp = time_now;
+    goal.goal_id.id = "sample_goal";
+
+    goal.header.frame_id = "map";
+    goal.header.stamp = time_now;
+
+    goal_publisher_.publish(goal);
+
+    return true;
+  } else {
+    return false;
+  }
+}

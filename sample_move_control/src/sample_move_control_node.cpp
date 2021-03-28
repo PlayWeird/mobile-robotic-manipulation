@@ -5,8 +5,6 @@
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "sample_move_control");
-  ros::AsyncSpinner spinner(2);
-  spinner.start();
 
   SampleMoveControl sample_move_control(argc, argv);
 
@@ -19,7 +17,18 @@ int main(int argc, char **argv) {
   target_pose.orientation.z = 0.0;
   target_pose.orientation.w = 1.0;
 
-  sample_move_control.move(target_pose);
+  ROS_INFO("Sending a goal");
+
+  // Send a goal every 0.5 second until goal received by move-base
+  ros::Rate loop_rate(2);
+  bool publishing = true;
+  while(ros::ok() && publishing) {
+    publishing = sample_move_control.publishGoal(target_pose);
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
+  ROS_INFO("Goal acknowledged by move-base, stopped sending the goal");
 
   ros::waitForShutdown();
   return 0;
