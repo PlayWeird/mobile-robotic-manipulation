@@ -25,7 +25,7 @@ std::vector<float> x_normal;
 std::vector<float> y_normal;
 std::vector<float> z_normal;
 
-float rot_matrix[4][4];
+float transformation_matrix[4][4];
 
 int main( int argc, char** argv )
 {
@@ -41,9 +41,10 @@ int main( int argc, char** argv )
   // Check if loading the .dae file works
   if (check_file)
   {
-    std::cout << "Open" << std::endl;
+    ROS_INFO("Open .dae file");
   } else {
-    std::cout << "Failed to load file" << std::endl;
+    ROS_ERROR("Failed to load .dae file");
+    return 1;
   }
   int size_points;
   int size_total; 
@@ -166,7 +167,7 @@ int main( int argc, char** argv )
                
             for (int i=0;i<4;i++){
               for (int j=0;j<4;j++){                     
-                matrix_stream >> rot_matrix[i][j];                             
+                matrix_stream >> transformation_matrix[i][j];                             
               }
             }
 
@@ -192,7 +193,7 @@ int main( int argc, char** argv )
     float point[] = { x_values[i], y_values[i], z_values[i], 1 };
     for (int i=0;i<4;i++){
       for (int j=0;j<4;j++){
-        point_transf[i]+= rot_matrix[i][j]*point[j] ;     
+        point_transf[i]+= transformation_matrix[i][j]*point[j] ;     
       }
     }  
 
