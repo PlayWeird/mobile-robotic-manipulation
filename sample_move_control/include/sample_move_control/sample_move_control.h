@@ -10,7 +10,10 @@ SampleMoveControl(int argc, char **argv);
 ~SampleMoveControl();
 
 // Move robot base to a target pose in planning frame
-bool publishGoal(const geometry_msgs::Pose &target_pose);
+bool publishGoal(const geometry_msgs::Pose &target_pose, std::string goal_id);
+
+// Get status
+char getStatus();
 
 private:
 

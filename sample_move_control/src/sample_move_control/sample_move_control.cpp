@@ -25,11 +25,15 @@ void SampleMoveControl::init() {
 void SampleMoveControl::moveBaseStateCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg) {
   if (!msg->status_list.empty()) {
     sample_move_base_status_ = msg->status_list.begin()->status;
+    // std::cout << msg->status_list.size() << ", " << (int)sample_move_base_status_ << std::endl;
+    if (sample_move_base_status_ == 3){
+    	sample_move_base_status_ = 0;
+    }
   }
 }
 
 
-bool SampleMoveControl::publishGoal(const geometry_msgs::Pose &target_pose) {
+bool SampleMoveControl::publishGoal(const geometry_msgs::Pose &target_pose, std::string goal_id) {
   // Keep publishing goals until move-base status is not pending
   if (!sample_move_base_status_) {
     const auto time_now = ros::Time::now();
@@ -40,11 +44,8 @@ bool SampleMoveControl::publishGoal(const geometry_msgs::Pose &target_pose) {
     goal.goal.target_pose.header.stamp = time_now;
     goal.goal.target_pose.header.frame_id = "map";
 
-    goal.header.frame_id = "bvr_SIM/bvr_base_link";
-    goal.header.stamp = time_now;
-
     goal.goal_id.stamp = time_now;
-    goal.goal_id.id = "sample_goal";
+    goal.goal_id.id = goal_id;
 
     goal.header.frame_id = "map";
     goal.header.stamp = time_now;
@@ -55,4 +56,9 @@ bool SampleMoveControl::publishGoal(const geometry_msgs::Pose &target_pose) {
   } else {
     return false;
   }
+
+}
+
+char SampleMoveControl::getStatus() {
+	return sample_move_base_status_;
 }
