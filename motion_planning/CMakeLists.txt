@@ -106,8 +106,6 @@ find_package(TinyXML REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
     LIBRARIES
-    INCLUDE_DIRS
-      include
     DEPENDS
       TinyXML
 )
