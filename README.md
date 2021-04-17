@@ -34,7 +34,7 @@ cd ~/<your_catkin_ws>/src/mobile-robotic-manipulation
 CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build sample_arm_control
 ```
 
-# Run sample arm control simulation
+# Run sample control simulation
 
 ## Launch the simulation
 
@@ -52,9 +52,9 @@ ROS_NAMESPACE="bvr_SIM" roslaunch robowork_moveit_config robowork_moveit_plannin
 
 Wait until terminal 2 finishes setting up Moveit (after about 3 seconds), in terminal 3, run:
 ```
-ROS_NAMESPACE="bvr_SIM" roslaunch sample_arm_control sample_arm_control.launch
+ROS_NAMESPACE="bvr_SIM" roslaunch move_control move_control.launch
 ```
 
 ## Expected result
 
-The gripper arm on the robot moves upward.
+The robot moves to a position, moves the arm twice, then moves to another position, moves the arm twice.
