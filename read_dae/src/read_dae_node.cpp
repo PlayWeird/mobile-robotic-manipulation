@@ -8,9 +8,12 @@
 int main( int argc, char** argv ) {
   ros::init(argc, argv, "read_dae");
   ros::NodeHandle nh;
+  ros::NodeHandle pnh{"~"};
 
-  const auto target_end_effector_poses =
-    read_dae("mobile-robotic-manipulation/motion_planning/boat/meshes/boat.dae");
+  std::string file_path;
+  pnh.getParam("file_path", file_path);
+
+  const auto target_end_effector_poses = read_dae(file_path);
 
   tf2_ros::StaticTransformBroadcaster static_broadcaster;
 
