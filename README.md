@@ -2,6 +2,10 @@
 
 A project for CS 491 Autonomous Mobile Manipulation class at the University of Nevada, Reno.
 
+# Important files
+
+- `sample_control/src/sample_control_node.cpp` is an example of using `move_control` service.
+
 # Setup
 
 ## First time setting up only
@@ -17,12 +21,11 @@ src
 │   └── ...
 └── mobile-robotic-manipulation
     ├── README.md
-    └── sample_arm_control
-        ├── CMakeLists.txt
-        ├── package.xml
-        ├── launch
-        ├── include
-        └── src
+    ├── docs
+    ├── read_dae
+    ├── arm_control
+    ├── base_control
+    └── move_control
 ```
 
 ## Build packages in this repository
@@ -31,7 +34,8 @@ Build the packages in this project repository (replace `<your_catkin_ws>` with y
 ```
 cd ~/<your_catkin_ws>/src/mobile-robotic-manipulation
 
-CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build sample_arm_control
+CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build sample_control
+CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build read_dae
 ```
 
 # Run sample control simulation
@@ -53,6 +57,11 @@ ROS_NAMESPACE="bvr_SIM" roslaunch robowork_moveit_config robowork_moveit_plannin
 Wait until terminal 2 finishes setting up Moveit (after about 3 seconds), in terminal 3, run:
 ```
 ROS_NAMESPACE="bvr_SIM" roslaunch move_control move_control.launch
+```
+
+Wait until terminal 3 finishes setting up control services (after about 5 seconds), in terminal 4, run:
+```
+ROS_NAMESPACE="bvr_SIM" rosrun sample_control sample_control_node
 ```
 
 ## Expected result

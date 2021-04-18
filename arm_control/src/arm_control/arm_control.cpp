@@ -1,31 +1,37 @@
-#include "sample_arm_control.h"
+#include <ros/ros.h>
+#include "arm_control.h"
+#include <move_base_msgs/MoveBaseAction.h>
+
+#include <string>
+#include <memory>
 
 
-SampleArmControl::SampleArmControl(int argc, char **argv) :
-  nh_(new ros::NodeHandle()),
-  pnh_(new ros::NodeHandle("~")) {
+ArmControl::ArmControl(int argc, char **argv) :
+  nh_(new ros::NodeHandle()), pnh_(new ros::NodeHandle("~")) {
   std::string arm_namespace;
   pnh_->getParam("arm_namespace", arm_namespace);
   std::string robot_namespace;
   pnh_->getParam("robot_namespace", robot_namespace);
   init(arm_namespace, robot_namespace);
 
-  ROS_INFO("Initialized SampleArmControl");
+  ROS_INFO("Initialized ArmControl");
 }
 
-SampleArmControl::~SampleArmControl() {
+
+ArmControl::~ArmControl() {
   nh_.reset();
   pnh_.reset();
   move_group_.reset();
 }
 
-void SampleArmControl::init(const std::string &planning_group, const std::string &robot_namespace) {
+
+void ArmControl::init(const std::string &planning_group, const std::string &robot_namespace) {
+  arm_control_srv_ = nh_->advertiseService("arm_control", &ArmControl::move, this);
+
   move_group_ = std::make_unique<MoveGroupInterface>(planning_group);
 
   planning_frame_ = move_group_->getPlanningFrame();
   end_effector_frame_ = robot_namespace + "/" + planning_group + "/gripper_manipulation_link";
-
-  joint_model_group_ = move_group_->getCurrentState()->getJointModelGroup(planning_group);
 
   // Configure robot movement control
   move_group_->setMaxVelocityScalingFactor(0.25);
@@ -36,15 +42,22 @@ void SampleArmControl::init(const std::string &planning_group, const std::string
   move_group_->setPlannerId("RRTConnectkConfigDefault");
 }
 
-bool SampleArmControl::move(const geometry_msgs::Pose &target_pose) {
-  // Get current gripper pose
-  geometry_msgs::Pose start_pose = move_group_->getCurrentPose().pose;
 
-  // Since the gripper is a chain, we can set the inverse kinematics from the start pose
-  robot_state::RobotState start_state(*move_group_->getCurrentState());
-  start_state.setFromIK(joint_model_group_, start_pose);
-  move_group_->setStartState(start_state);
+bool ArmControl::move(arm_control::ArmControlSrv::Request  &req,
+                      arm_control::ArmControlSrv::Response &res) {
+  for (const auto &target_end_effector_pose : req.poses) {
+    if(!moveEndEffector(target_end_effector_pose)) {
+      res.status = -1;
+      return false;
+    }
+  }
 
+  res.status = 0;
+  return true;
+}
+
+
+bool ArmControl::moveEndEffector(const geometry_msgs::Pose &target_pose) {
   geometry_msgs::PoseStamped target_pose_stamped;
   target_pose_stamped.header.frame_id = planning_frame_;
   target_pose_stamped.header.stamp = ros::Time::now();
@@ -59,8 +72,9 @@ bool SampleArmControl::move(const geometry_msgs::Pose &target_pose) {
   ROS_INFO_STREAM("Planning " << (success ? "SUCCEEDED" : "FAILED"));
 
   // If there exists a such a plan, then execute the plan and move the gripper
-  if (success)
-    move_group_->asyncExecute(plan);
+  if (success) {
+    move_group_->execute(plan);
+  }
 
   return success;
 }

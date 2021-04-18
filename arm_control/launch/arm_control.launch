@@ -2,7 +2,7 @@
   <arg name="robot_namespace" default="bvr_SIM"/>
   <arg name="arm_namespace" default="main_arm_SIM"/>
 
-  <node name="sample_arm_control" pkg="sample_arm_control" type="sample_arm_control_node" output="screen">
+  <node name="arm_control" pkg="arm_control" type="arm_control_node" output="screen">
     <param name="robot_namespace" value="$(arg robot_namespace)"/>
     <param name="arm_namespace" value="$(arg arm_namespace)"/>
   </node>

@@ -1,9 +1,6 @@
 <launch>
-  <arg name="robot_namespace" default="bvr_SIM"/>
-  <arg name="arm_namespace" default="main_arm_SIM"/>
+  <node name="move_control" pkg="move_control" type="move_control_node" output="screen"/>
 
-  <node name="move_control" pkg="move_control" type="move_control_node" output="screen">
-    <param name="robot_namespace" value="$(arg robot_namespace)"/>
-    <param name="arm_namespace" value="$(arg arm_namespace)"/>
-  </node>
+  <include file="$(find base_control)/launch/base_control.launch"/>
+  <include file="$(find arm_control)/launch/arm_control.launch"/>
 </launch>

@@ -1,0 +1,4 @@
+geometry_msgs/Pose base_pose
+geometry_msgs/Pose[] arm_poses
+---
+int8 status
