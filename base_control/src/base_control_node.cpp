@@ -6,6 +6,6 @@ int main(int argc, char** argv) {
 
   BaseControl base_control{argc, argv};
 
-  ros::waitForShutdown();
+  ros::spin();
   return 0;
 }

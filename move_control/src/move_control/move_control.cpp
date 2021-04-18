@@ -20,6 +20,7 @@ void MoveControl::init() {
 
 bool MoveControl::move(move_control::MoveControlSrv::Request  &req,
                        move_control::MoveControlSrv::Response &res) {
+  ROS_INFO("Move control request received");
   // Call base-control service
   base_control::BaseControlSrv base_control_srv;
   base_control_srv.request.pose = req.base_pose;

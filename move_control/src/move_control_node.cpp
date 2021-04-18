@@ -7,6 +7,6 @@ int main(int argc, char **argv) {
 
   MoveControl move_control{argc, argv};
 
-  ros::waitForShutdown();
+  ros::spin();
   return 0;
 }
