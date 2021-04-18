@@ -2,31 +2,28 @@
 #include <tinyxml.h>
 #include "read_dae.h"
 #include <eigen3/Eigen/Eigen>
+#include <eigen3/Eigen/Geometry>
 
 #include <sstream>
 #include <vector>
 
 
-using Eigen::Matrix3d;
 using Eigen::Vector3d;
-
-
-Matrix3d computeRotation(Vector3d vec_source, Vector3d vec_target);
-Matrix3d skew_symmetric(Vector3d vec);
+using Eigen::Quaterniond;
 
 
 PoseVector read_dae(const std::string &file_path) {
   PoseVector pose_vector;
 
+  // Load dae file
   TiXmlDocument doc{file_path};
   bool check_file = doc.LoadFile();
-  if (check_file) {
-    ROS_INFO_STREAM("Opened " << file_path << "file");
-  } else {
+  if (!check_file) {
     ROS_ERROR_STREAM("Failed to load " << file_path << " file");
     return pose_vector;
   }
 
+  // Read position vectors and unit normal vectors
   int size_points;
   int size_total;
   std::vector<double> x_values;
@@ -51,6 +48,7 @@ PoseVector read_dae(const std::string &file_path) {
           for (TiXmlElement* l_source = l_mesh->FirstChildElement("source"); l_source; l_source = l_source->NextSiblingElement("source")) {
             const char *attributeOfSource = l_source->Attribute("id");
 
+            // Read position vectors
             if (!strcmp(attributeOfSource, "riva_1-mesh-positions")) {
               TiXmlElement *l_float_array = l_source->FirstChildElement("float_array");
               if (l_float_array) {
@@ -87,7 +85,7 @@ PoseVector read_dae(const std::string &file_path) {
               }
             }
 
-            // Read the normals
+            // Read normal vectors
             if(strcmp(attributeOfSource,"riva_1-mesh-normals") == 0) {
               TiXmlElement *l_float_array = l_source->FirstChildElement("float_array");
               if (l_float_array) {
@@ -153,56 +151,29 @@ PoseVector read_dae(const std::string &file_path) {
     // Compute rotation
     Vector3d normal;
     normal << x_normal[i], y_normal[i], z_normal[i];
-
-    Vector3d x_axis_vec;
-    x_axis_vec << 1.0, 0.0, 0.0;
-
+    Vector3d axis_vec;
+    axis_vec << 0.0, 0.0, 1.0;
     // Finds rotation that maps x-axis vector to normal
-    Matrix3d rotation = computeRotation(x_axis_vec, normal);
+    Quaterniond rotation_quaternion = Quaterniond::FromTwoVectors(axis_vec, normal);
 
     // Compute transformed point
-    // double point_transf[] = { 0.0, 0.0, 0.0, 0.0 };
-    // double point[] = { x_values[i], y_values[i], z_values[i], 1.0 };
-    // for (int i = 0; i < 4; ++i) {
-    //   for (int j = 0; j < 4; ++j) {
-    //     point_transf[i] += transformation_matrix[i][j] * point[j];
-    //   }
-    // }
-
-    // Todo: continue computing pose
+    double point_transf[] = { 0.0, 0.0, 0.0, 0.0 };
+    double point[] = { x_values[i], y_values[i], z_values[i], 1.0 };
+    for (int i = 0; i < 4; ++i) {
+      for (int j = 0; j < 4; ++j) {
+        point_transf[i] += transformation_matrix[i][j] * point[j];
+      }
+    }
 
     // Convert to geometry_msgs Pose message
     pose_vector[i].position.x = point_transf[0];
     pose_vector[i].position.y = point_transf[1];
     pose_vector[i].position.z = point_transf[2];
-    pose_vector[i].orientation.x = 0.0;
-    pose_vector[i].orientation.y = 0.0;
-    pose_vector[i].orientation.z = 0.0;
-    pose_vector[i].orientation.w = 1.0;
+    pose_vector[i].orientation.x = rotation_quaternion.x();
+    pose_vector[i].orientation.y = rotation_quaternion.y();
+    pose_vector[i].orientation.z = rotation_quaternion.z();
+    pose_vector[i].orientation.w = rotation_quaternion.w();
   }
 
   return pose_vector;
-}
-
-
-Matrix3d skew_symmetric(Vector3d vec) {
-  Matrix3d skew_symmetric_matrix;
-  skew_symmetric_matrix <<
-    0.0, -vec(2), vec(1),
-    vec(2), 0.0, -vec(0),
-    -vec(1), vec(0), 0.0;
-
-  return skew_symmetric_matrix;
-}
-
-
-Matrix3d computeRotation(Vector3d vec_source, Vector3d vec_target) {
-  Vector3d v = vec_source.cross(vec_target);
-  double s = v.norm();
-  double c = vec_source.dot(vec_target);
-
-  Matrix3d I = Matrix3d::Identity();
-  Matrix3d skew_v = skew_symmetric(v);
-
-  return I + skew_v + skew_v * skew_v * ((1.0 - c) / (s * s));
 }
