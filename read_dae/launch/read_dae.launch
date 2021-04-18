@@ -1,0 +1,7 @@
+<launch>
+  <arg name="file_path" default="/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/gazebo_resources/models/boat/meshes/boat.dae"/>
+
+  <node name="read_dae" pkg="read_dae" type="read_dae_node" output="screen">
+    <param name="file_path" value="$(arg file_path)"/>
+  </node>
+</launch>
