@@ -7,6 +7,8 @@
 
 
 PoseVector read_dae(const std::string &file_path) {
+  PoseVector pose_vector;
+
   TiXmlDocument doc{file_path};
   bool check_file = doc.LoadFile();
   if (check_file) {
@@ -136,7 +138,6 @@ PoseVector read_dae(const std::string &file_path) {
     }
   }
 
-  PoseVector pose_vector;
   pose_vector.resize(size_points);
 
   for(int i=0; i < size_points; ++i) {

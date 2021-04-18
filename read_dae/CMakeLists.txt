@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   roscpp
   geometry_msgs
+  tf2_ros
 )
 
 find_package(TinyXML REQUIRED)
@@ -16,18 +17,16 @@ find_package(TinyXML REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES read_dae
-  CATKIN_DEPENDS cmake_modules roscpp geometry_msgs
+  CATKIN_DEPENDS cmake_modules roscpp geometry_msgs tf2_ros
 )
 
-include_directories(
-  include/${PROJECT_NAME}
-  ${catkin_INCLUDE_DIRS}
-)
+include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
+include_directories(include/${PROJECT_NAME} ${catkin_INCLUDE_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
-add_library(${PROJECT_NAME}
-  src/${PROJECT_NAME}.cpp
-)
+add_library(${PROJECT_NAME} src/${PROJECT_NAME}/${PROJECT_NAME}.cpp)
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${TinyXML_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-)
+add_executable(${PROJECT_NAME}_node src/${PROJECT_NAME}_node.cpp)
+target_link_libraries(${PROJECT_NAME}_node ${PROJECT_NAME} ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS ${PROJECT_NAME}_node DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
