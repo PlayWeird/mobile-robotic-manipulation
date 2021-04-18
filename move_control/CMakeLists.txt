@@ -6,28 +6,34 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(catkin REQUIRED COMPONENTS
-  actionlib
   geometry_msgs
-  move_base_msgs
-  moveit_core
-  moveit_ros_planning
-  moveit_ros_planning_interface
   roscpp
   std_msgs
+  message_generation
+  arm_control
+  base_control
 )
 
 find_package(Eigen3 REQUIRED)
 
+add_service_files(
+  FILES
+  MoveControlSrv.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+)
+
 catkin_package(
   CATKIN_DEPENDS
-    actionlib
     geometry_msgs
-    move_base_msgs
-    moveit_core
-    moveit_ros_planning
-    moveit_ros_planning_interface
     roscpp
     std_msgs
+    message_runtime
+    arm_control
+    base_control
 )
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})

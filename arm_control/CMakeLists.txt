@@ -1,29 +1,41 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(sample_move_control)
+project(arm_control)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(catkin REQUIRED COMPONENTS
-  actionlib
-  move_base_msgs
+  moveit_core
+  moveit_ros_planning
+  moveit_ros_planning_interface
   roscpp
-  rospy
   std_msgs
   geometry_msgs
+  message_generation
 )
 
 find_package(Eigen3 REQUIRED)
 
+add_service_files(
+  FILES
+  ArmControlSrv.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+  geometry_msgs
+)
+
 catkin_package(
   CATKIN_DEPENDS
-    actionlib
-	  move_base_msgs
-  	roscpp
-  	rospy
-  	std_msgs
+    moveit_core
+    moveit_ros_planning
+    moveit_ros_planning_interface
+    roscpp
+    std_msgs
     geometry_msgs
+    message_runtime
 )
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
