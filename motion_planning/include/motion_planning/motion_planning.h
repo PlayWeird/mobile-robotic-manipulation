@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <move_control.h>
+#include "move_control/MoveControlSrv.h"
 #include <geometry_msgs/Pose.h>
 
 #include <vector>
@@ -24,11 +24,11 @@ bool run();
 private:
 
 void init() {
-  control_clt = nh_->serviceClient<move_control::MoveControlSrv>("move_control");
+  control_clt_ = nh_->serviceClient<move_control::MoveControlSrv>("move_control");
 }
 
 int move(const BaseEndEffectorPoses &base_end_effector_poses);
 
-std::unique<ros::NodeHandle> nh_;
+std::unique_ptr<ros::NodeHandle> nh_;
 ros::ServiceClient control_clt_;
 };

@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include "motion_planning.h"
-#include <geomtry_msgs/Pose.h>
+#include <geometry_msgs/Pose.h>
 
 
 MotionPlanning::MotionPlanning(int argc, char **argv) :
@@ -9,7 +9,7 @@ MotionPlanning::MotionPlanning(int argc, char **argv) :
   ROS_INFO("Initalized MotionPlanning");
 }
 
-
+/* ---------Experiment starts here--------- */
 geometry_msgs::Pose makeBasePose(){
   geometry_msgs::Pose made_pose;
   float random_x;
@@ -59,6 +59,7 @@ BaseEndEffectorPoses getFakeBaseEndEffectorPoses() {
   auto base_pose = makeBasePose();
   return BaseEndEffectorPoses{.base_pose = base_pose, .end_effector_poses = makeEndEffectorPoses(base_pose)};
 }
+/* ---------Experiment ends here--------- */
 
 
 bool MotionPlanning::run() {
@@ -77,13 +78,16 @@ bool MotionPlanning::run() {
   case -2:
     ROS_WARN("Control FAILED");
     run_successful = false;
+    break;
+  default:
+    break;
   }
-
-  ROS_INFO("Trial 1 SUCEEDED");
 
   if (!run_successful) {
     return run_successful;
   }
+
+  ROS_INFO("Trial 1 SUCEEDED");
 
   //Trial 2
   auto base_end_effector_poses_2 = getFakeBaseEndEffectorPoses();
@@ -98,6 +102,8 @@ bool MotionPlanning::run() {
   case -2:
     ROS_WARN("Control FAILED");
     run_successful = false;
+  default:
+    break;
   }
 
   ROS_INFO("Trial 2 SUCEEDED");
@@ -118,9 +124,9 @@ int MotionPlanning::move(const BaseEndEffectorPoses &base_end_effector_poses) {
   move_control_srv.request.arm_poses = base_end_effector_poses.end_effector_poses;
 
   // If cannot call service, return error
-  if (!control_clt.call(move_control_srv)) return -1;
+  if (!control_clt_.call(move_control_srv)) return -1;
   // If control execution failed, return error
-  if (!move_control_srv.response.status) return -2;
+  if (move_control_srv.response.status) return -2;
 
   // Return successful status
   return 0;
