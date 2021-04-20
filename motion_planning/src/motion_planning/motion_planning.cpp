@@ -85,8 +85,8 @@ BaseEndEffectorPoses get_69_73_poses() {
   ee_poses.push_back(pose_69);
 
   geometry_msgs::Pose base_pose;
-  base_pose.position.x = 2.776;
-  base_pose.position.y = -1.485;
+  base_pose.position.x = 2.033;
+  base_pose.position.y = -1.1;
   base_pose.position.z = 0.0;
   base_pose.orientation.x = 0.0;
   base_pose.orientation.y = 0.0;
