@@ -59,15 +59,50 @@ BaseEndEffectorPoses getFakeBaseEndEffectorPoses() {
   auto base_pose = makeBasePose();
   return BaseEndEffectorPoses{.base_pose = base_pose, .end_effector_poses = makeEndEffectorPoses(base_pose)};
 }
+
+
+BaseEndEffectorPoses get_69_73_poses() {
+  geometry_msgs::Pose pose_73;
+  pose_73.position.x = 2.667;
+  pose_73.position.y = -0.472;
+  pose_73.position.z = 0.440;
+  pose_73.orientation.x = 0.116;
+  pose_73.orientation.y = 0.036;
+  pose_73.orientation.z = 0.000;
+  pose_73.orientation.w = 0.993;
+
+  geometry_msgs::Pose pose_69;
+  pose_69.position.x = 2.975;
+  pose_69.position.y = -0.469;
+  pose_69.position.z = 0.458;
+  pose_69.orientation.x = 0.061;
+  pose_69.orientation.y = -0.018;
+  pose_69.orientation.z = 0.000;
+  pose_69.orientation.w = 0.998;
+
+  std::vector<geometry_msgs::Pose> ee_poses;
+  ee_poses.push_back(pose_73);
+  ee_poses.push_back(pose_69);
+
+  geometry_msgs::Pose base_pose;
+  base_pose.position.x = 2.776;
+  base_pose.position.y = -1.485;
+  base_pose.position.z = 0.0;
+  base_pose.orientation.x = 0.0;
+  base_pose.orientation.y = 0.0;
+  base_pose.orientation.z = 0.0;
+  base_pose.orientation.w = 1.0;
+
+  return BaseEndEffectorPoses{.base_pose = base_pose, .end_effector_poses = ee_poses};
+}
 /* ---------Experiment ends here--------- */
 
 
 bool MotionPlanning::run() {
   bool run_successful = true;
 
-  //Trial 1
-  auto base_end_effector_poses_1 = getFakeBaseEndEffectorPoses();
-  switch(move(base_end_effector_poses_1)) {
+  auto base_end_effector_poses = get_69_73_poses();
+  switch(move(base_end_effector_poses)) {
   case 0:
     ROS_INFO("Control SUCCEEDED");
     break;
@@ -82,31 +117,6 @@ bool MotionPlanning::run() {
   default:
     break;
   }
-
-  if (!run_successful) {
-    return run_successful;
-  }
-
-  ROS_INFO("Trial 1 SUCEEDED");
-
-  //Trial 2
-  auto base_end_effector_poses_2 = getFakeBaseEndEffectorPoses();
-  switch(move(base_end_effector_poses_2)) {
-  case 0:
-    ROS_INFO("Control SUCCEEDED");
-    break;
-  case -1:
-    ROS_ERROR("Failed to call move_control service");
-    run_successful = false;
-    break;
-  case -2:
-    ROS_WARN("Control FAILED");
-    run_successful = false;
-  default:
-    break;
-  }
-
-  ROS_INFO("Trial 2 SUCEEDED");
 
   return run_successful;
 }
