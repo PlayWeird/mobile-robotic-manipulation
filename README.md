@@ -61,7 +61,7 @@ ROS_NAMESPACE="bvr_SIM" roslaunch move_control move_control.launch
 
 Wait until terminal 3 finishes setting up control services (after about 5 seconds), in terminal 4, run:
 ```
-ROS_NAMESPACE="bvr_SIM" rosrun sample_control sample_control_node
+ROS_NAMESPACE="bvr_SIM" rosrun motion_planning motion_planning_node
 ```
 
 ## Expected result
