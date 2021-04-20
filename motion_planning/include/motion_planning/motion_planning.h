@@ -6,6 +6,12 @@
 #include <memory>
 
 
+struct BaseEndEffectorPoses {
+  geometry_msgs::Pose base_pose;
+  std::vector<geometry_msgs::Pose> end_effector_poses;
+};
+
+
 class MotionPlanning {
 public:
 MotionPlanning(int argc, char **argv);
@@ -16,11 +22,12 @@ MotionPlanning(int argc, char **argv);
 bool run();
 
 private:
+
 void init() {
   control_clt = nh_->serviceClient<move_control::MoveControlSrv>("move_control");
 }
 
-int move(const geometry_msgs::Pose &base_pose, const std::vector<geometry_msgs::Pose> &end_effector_poses);
+int move(const BaseEndEffectorPoses &base_end_effector_poses);
 
 std::unique<ros::NodeHandle> nh_;
 ros::ServiceClient control_clt_;

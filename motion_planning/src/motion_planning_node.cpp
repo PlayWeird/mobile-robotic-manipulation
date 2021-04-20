@@ -7,7 +7,10 @@ int main(int argc, char** argv) {
 
   MotionPlanning motion_planning{argc, argv};
 
-  motion_planning.run();
+  if(motion_planning.run())
+    ROS_INFO("Run SUCCEEDED");
+  else
+    ROS_WARN("Run FAILED");
 
   ros::waitForShutdown();
   return 0;
