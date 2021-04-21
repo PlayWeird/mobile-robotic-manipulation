@@ -17,7 +17,7 @@ geometry_msgs::Pose makeBasePose(){
   random_x = ((float)std::rand() / (float)RAND_MAX) * range;
 
   made_pose.position.x = random_x;
-  made_pose.position.y = 1.5;
+  made_pose.position.y = 1000.5;
   made_pose.position.z = 0.0;
   made_pose.orientation.x = 0.0;
   made_pose.orientation.y = 0.0;

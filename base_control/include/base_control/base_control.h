@@ -19,6 +19,12 @@ bool move(base_control::BaseControlSrv::Request  &req,
           base_control::BaseControlSrv::Response &res);
 
 private:
+enum ServiceStatus {
+  SUCCEEDED = 0,
+  PLANNING_ERROR = -1,
+  UNKNOWN_ERROR = -2
+};
+
 void init();
 
 void moveBaseStateCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);

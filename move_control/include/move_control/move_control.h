@@ -17,9 +17,15 @@ bool move(move_control::MoveControlSrv::Request  &req,
 
 private:
 enum ServiceStatus {
-  SUCCEEDED = 0,
+  SERVICE_SUCCEEDED = 0,
   SERVICE_CALL_ERROR,
   SERVICE_EXECUTION_ERROR
+};
+
+enum ControlStatus {
+  CONTROL_SUCCEEDED = 0,
+  BASE_CONTROL_ERROR = -1,
+  ARM_CONTROL_ERROR = -2,
 };
 
 void init();

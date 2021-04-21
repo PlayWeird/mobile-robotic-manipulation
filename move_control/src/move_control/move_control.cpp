@@ -23,15 +23,15 @@ MoveControl::ServiceStatus MoveControl::moveBase(const geometry_msgs::Pose &pose
   base_control_srv.request.pose = pose;
 
   if (!base_control_clt_.call(base_control_srv)) {
-    ROS_ERROR("Failed to call service base_control");
+    ROS_ERROR("Move-Base service FAILED");
     return SERVICE_CALL_ERROR;
   } else if (base_control_srv.response.status) {
-    ROS_WARN("Move-Base FAILED");
+    ROS_WARN("Move-Base execution status FAILED");
     return SERVICE_EXECUTION_ERROR;
   }
 
   ROS_INFO("Move-Base SUCCEEDED");
-  return SUCCEEDED;
+  return SERVICE_SUCCEEDED;
 }
 
 
@@ -40,15 +40,15 @@ MoveControl::ServiceStatus MoveControl::moveEndEffector(const std::vector<geomet
   arm_control_srv.request.poses = poses;
 
   if (!arm_control_clt_.call(arm_control_srv)) {
-    ROS_ERROR("Failed to call service arm_control");
+    ROS_ERROR("Move-Arm service FAILED");
     return SERVICE_CALL_ERROR;;
   } else if (arm_control_srv.response.status) {
-    ROS_WARN("Move-Arm FAILED");
+    ROS_WARN("Move-Arm execution status FAILED");
     return SERVICE_EXECUTION_ERROR;
   }
 
   ROS_INFO("Move-Arm SUCCEEDED");
-  return SUCCEEDED;
+  return SERVICE_SUCCEEDED;
 }
 
 
@@ -57,17 +57,18 @@ bool MoveControl::move(move_control::MoveControlSrv::Request  &req,
   ROS_INFO("Move control request received");
 
   // Call base-control service
-  if (moveBase(req.base_pose) != SUCCEEDED) {
-    res.status = -1;
-    return false;
+  if (moveBase(req.base_pose) != SERVICE_SUCCEEDED) {
+    res.status = BASE_CONTROL_ERROR;
+    return true;
   }
 
   // Call arm-control service
-  if (moveEndEffector(req.arm_poses) != SUCCEEDED) {
-    res.status = -2;
-    return false;
+  if (moveEndEffector(req.arm_poses) != SERVICE_SUCCEEDED) {
+    res.status = ARM_CONTROL_ERROR;
+    return true;
   }
 
-  res.status = 0;
+  res.status = CONTROL_SUCCEEDED;
+  ROS_INFO("Move control executed successfully");
   return true;
 }
