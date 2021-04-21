@@ -45,14 +45,16 @@ void ArmControl::init(const std::string &planning_group, const std::string &robo
 
 bool ArmControl::move(arm_control::ArmControlSrv::Request  &req,
                       arm_control::ArmControlSrv::Response &res) {
+  ROS_INFO("Arm control request received");
+
   for (const auto &target_end_effector_pose : req.poses) {
     if(!moveEndEffector(target_end_effector_pose)) {
-      res.status = -1;
-      return false;
+      res.status = PLANNING_ERROR;
+      return true;
     }
   }
 
-  res.status = 0;
+  res.status = SUCCEEDED;
   return true;
 }
 

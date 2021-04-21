@@ -5,6 +5,7 @@
 #include "base_control/BaseControlSrv.h"
 
 #include <memory>
+#include <string>
 
 
 class BaseControl {
@@ -18,6 +19,12 @@ bool move(base_control::BaseControlSrv::Request  &req,
           base_control::BaseControlSrv::Response &res);
 
 private:
+enum ServiceStatus {
+  SUCCEEDED = 0,
+  PLANNING_ERROR = -1,
+  UNKNOWN_ERROR = -2
+};
+
 void init();
 
 void moveBaseStateCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
@@ -31,5 +38,5 @@ ros::ServiceServer base_control_srv_;
 
 char move_base_status_;
 
-int goal_id_counter_;
+std::string latest_goal_id_;
 };

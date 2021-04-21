@@ -23,11 +23,17 @@ bool run();
 
 private:
 
+enum ServiceStatus {
+  SUCCEEDED = 0,
+  SERVICE_CALL_ERROR,
+  SERVICE_EXECUTION_ERROR
+};
+
 void init() {
   control_clt_ = nh_->serviceClient<move_control::MoveControlSrv>("move_control");
 }
 
-int move(const BaseEndEffectorPoses &base_end_effector_poses);
+ServiceStatus move(const BaseEndEffectorPoses &base_end_effector_poses);
 
 std::unique_ptr<ros::NodeHandle> nh_;
 ros::ServiceClient control_clt_;

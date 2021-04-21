@@ -18,6 +18,11 @@ bool move(arm_control::ArmControlSrv::Request  &req,
           arm_control::ArmControlSrv::Response &res);
 
 private:
+enum ServiceStatus {
+  SUCCEEDED = 0,
+  PLANNING_ERROR = -1
+};
+
 void init(const std::string &planning_group, const std::string &robot_namespace);
 
 // Move end effector to a target pose in planning frame

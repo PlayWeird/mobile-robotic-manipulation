@@ -101,17 +101,17 @@ BaseEndEffectorPoses get_69_73_poses() {
 bool MotionPlanning::run() {
   bool run_successful = true;
 
-  auto base_end_effector_poses = get_69_73_poses();
+  auto base_end_effector_poses = getFakeBaseEndEffectorPoses();
   switch(move(base_end_effector_poses)) {
-  case 0:
+  case SUCCEEDED:
     ROS_INFO("Control SUCCEEDED");
     break;
-  case -1:
+  case SERVICE_CALL_ERROR:
     ROS_ERROR("Failed to call move_control service");
     run_successful = false;
     break;
-  case -2:
-    ROS_WARN("Control FAILED");
+  case SERVICE_EXECUTION_ERROR:
+    ROS_WARN("Control execution FAILED");
     run_successful = false;
     break;
   default:
@@ -127,17 +127,17 @@ bool MotionPlanning::run() {
 // Return  0: control execution successful.
 // Return -1: service call failed.
 // Return -2: control execution failed.
-int MotionPlanning::move(const BaseEndEffectorPoses &base_end_effector_poses) {
+MotionPlanning::ServiceStatus MotionPlanning::move(const BaseEndEffectorPoses &base_end_effector_poses) {
   // Prepare service call message
   move_control::MoveControlSrv move_control_srv;
   move_control_srv.request.base_pose = base_end_effector_poses.base_pose;
   move_control_srv.request.arm_poses = base_end_effector_poses.end_effector_poses;
 
   // If cannot call service, return error
-  if (!control_clt_.call(move_control_srv)) return -1;
+  if (!control_clt_.call(move_control_srv)) return SERVICE_CALL_ERROR;
   // If control execution failed, return error
-  if (move_control_srv.response.status) return -2;
+  if (move_control_srv.response.status) return SERVICE_EXECUTION_ERROR;
 
   // Return successful status
-  return 0;
+  return SUCCEEDED;
 }
