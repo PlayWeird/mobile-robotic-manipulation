@@ -40,6 +40,11 @@ void ArmControl::init(const std::string &planning_group, const std::string &robo
   move_group_->setNumPlanningAttempts(100);
   move_group_->setGoalTolerance(0.02);
   move_group_->setPlannerId("RRTConnectkConfigDefault");
+
+  // Save default arm configuration
+  const robot_state::JointModelGroup* joint_model_group =
+    move_group_->getCurrentState()->getJointModelGroup(planning_group);
+  move_group_->getCurrentState()->copyJointGroupPositions(joint_model_group, default_arm_configuration_);
 }
 
 
@@ -52,6 +57,11 @@ bool ArmControl::move(arm_control::ArmControlSrv::Request  &req,
       res.status = PLANNING_ERROR;
       return true;
     }
+  }
+
+  if (!resetToDefaultConfiguration()) {
+    res.status = CONFIGURATION_RESTORATION_ERROR;
+    return true;
   }
 
   res.status = SUCCEEDED;
@@ -71,9 +81,26 @@ bool ArmControl::moveEndEffector(const geometry_msgs::Pose &target_pose) {
   // Compute a plan to reach the target end effector frame pose
   MoveGroupInterface::Plan plan;
   bool success = (move_group_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-  ROS_INFO_STREAM("Planning " << (success ? "SUCCEEDED" : "FAILED"));
+  ROS_INFO_STREAM("Planning toward end effector pose " << (success ? "SUCCEEDED" : "FAILED"));
 
   // If there exists a such a plan, then execute the plan and move the gripper
+  if (success) {
+    move_group_->execute(plan);
+  }
+
+  return success;
+}
+
+
+bool ArmControl::resetToDefaultConfiguration() {
+  move_group_->setJointValueTarget(default_arm_configuration_);
+
+  // Compute a plan to reach the default configuration
+  MoveGroupInterface::Plan plan;
+  bool success = (move_group_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  ROS_INFO_STREAM("Planning toward default pose " << (success ? "SUCCEEDED" : "FAILED"));
+
+  // If there exists a such a plan, then execute the plan
   if (success) {
     move_group_->execute(plan);
   }
