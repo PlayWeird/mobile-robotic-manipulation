@@ -1,6 +1,5 @@
 #include "base_control.h"
 #include <move_base_msgs/MoveBaseAction.h>
-#include <string>
 
 
 BaseControl::BaseControl(int argc, char **argv) :
@@ -15,12 +14,12 @@ void BaseControl::init() {
   goal_status_subscriber_ = nh_->subscribe("/bvr_SIM/move_base/status", 10, &BaseControl::moveBaseStateCallback, this);
   base_control_srv_ = nh_->advertiseService("base_control", &BaseControl::move, this);
   move_base_status_ = 0;
-  latest_goal_id_ = 0;
+  latest_goal_id_ = std::to_string(ros::Time::now().toSec());
 }
 
 
 void BaseControl::moveBaseStateCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg) {
-  if (!msg->status_list.empty() && msg->status_list.begin()->goal_id.id == std::to_string(latest_goal_id_)) {
+  if (!msg->status_list.empty() && msg->status_list.begin()->goal_id.id == latest_goal_id_) {
     move_base_status_ = msg->status_list.begin()->status;
   } else {
     move_base_status_ = 0;
@@ -30,7 +29,7 @@ void BaseControl::moveBaseStateCallback(const actionlib_msgs::GoalStatusArray::C
 
 bool BaseControl::move(base_control::BaseControlSrv::Request  &req,
                        base_control::BaseControlSrv::Response &res) {
-  ++latest_goal_id_;
+  latest_goal_id_ = std::to_string(ros::Time::now().toSec());;
 
   // Keep publishing until move-base acknowledges the request
   ros::Rate loop_rate_publishing(2);
@@ -65,7 +64,7 @@ bool BaseControl::publishGoal(const geometry_msgs::Pose &target_pose) {
     goal.goal.target_pose.header.frame_id = "map";
 
     goal.goal_id.stamp = time_now;
-    goal.goal_id.id = std::to_string(latest_goal_id_);
+    goal.goal_id.id = latest_goal_id_;
 
     goal.header.frame_id = "map";
     goal.header.stamp = time_now;

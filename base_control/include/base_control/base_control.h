@@ -5,6 +5,7 @@
 #include "base_control/BaseControlSrv.h"
 
 #include <memory>
+#include <string>
 
 
 class BaseControl {
@@ -31,5 +32,5 @@ ros::ServiceServer base_control_srv_;
 
 char move_base_status_;
 
-int latest_goal_id_;
+std::string latest_goal_id_;
 };
