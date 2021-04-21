@@ -31,7 +31,8 @@ bool BaseControl::move(base_control::BaseControlSrv::Request  &req,
                        base_control::BaseControlSrv::Response &res) {
   ROS_INFO("Base control request received");
 
-  latest_goal_id_ = std::to_string(ros::Time::now().toSec());;
+  auto time = ros::Time::now();
+  latest_goal_id_ = std::to_string(time.toSec());
 
   // Keep publishing until move-base acknowledges the request
   ros::Rate loop_rate_publishing(2);
@@ -44,7 +45,11 @@ bool BaseControl::move(base_control::BaseControlSrv::Request  &req,
 
   // Looping until move-base finishes moving
   ros::Rate loop_rate_waiting(2);
-  while(ros::ok() && move_base_status_ == 1) {
+  while(ros::ok() && move_base_status_ == actionlib_msgs::GoalStatus::ACTIVE) {
+    if (ros::Time::now() - time > ros::Duration(10.0)) {
+      ROS_INFO("Still planning or moving ...");
+      time = ros::Time::now();
+    }
     ros::spinOnce();
     loop_rate_waiting.sleep();
   }
