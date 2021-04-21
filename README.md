@@ -34,8 +34,7 @@ Build the packages in this project repository (replace `<your_catkin_ws>` with y
 ```
 cd ~/<your_catkin_ws>/src/mobile-robotic-manipulation
 
-CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build sample_control
-CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build read_dae
+CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build motion_planning
 ```
 
 # Run sample control simulation
