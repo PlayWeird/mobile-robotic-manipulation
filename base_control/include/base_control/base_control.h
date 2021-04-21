@@ -31,5 +31,5 @@ ros::ServiceServer base_control_srv_;
 
 char move_base_status_;
 
-int goal_id_counter_;
+int latest_goal_id_;
 };

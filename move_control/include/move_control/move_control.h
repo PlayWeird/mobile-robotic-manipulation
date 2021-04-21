@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <move_control/MoveControlSrv.h>
+#include <geometry_msgs/Pose.h>
 
 #include <vector>
 
@@ -15,7 +16,16 @@ bool move(move_control::MoveControlSrv::Request  &req,
           move_control::MoveControlSrv::Response &res);
 
 private:
+enum ServiceStatus {
+  SUCCEEDED = 0,
+  SERVICE_CALL_ERROR,
+  SERVICE_EXECUTION_ERROR
+};
+
 void init();
+
+ServiceStatus moveBase(const geometry_msgs::Pose &pose);
+ServiceStatus moveEndEffector(const std::vector<geometry_msgs::Pose> &poses);
 
 std::unique_ptr<ros::NodeHandle> nh_;
 

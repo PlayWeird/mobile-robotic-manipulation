@@ -15,23 +15,22 @@ void BaseControl::init() {
   goal_status_subscriber_ = nh_->subscribe("/bvr_SIM/move_base/status", 10, &BaseControl::moveBaseStateCallback, this);
   base_control_srv_ = nh_->advertiseService("base_control", &BaseControl::move, this);
   move_base_status_ = 0;
-  goal_id_counter_ = 0;
+  latest_goal_id_ = 0;
 }
 
 
 void BaseControl::moveBaseStateCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg) {
-  if (!msg->status_list.empty()) {
+  if (!msg->status_list.empty() && msg->status_list.begin()->goal_id.id == std::to_string(latest_goal_id_)) {
     move_base_status_ = msg->status_list.begin()->status;
-    if (move_base_status_ == 3) {
-      move_base_status_ = 0;
-    }
+  } else {
+    move_base_status_ = 0;
   }
 }
 
 
 bool BaseControl::move(base_control::BaseControlSrv::Request  &req,
                        base_control::BaseControlSrv::Response &res) {
-  ++goal_id_counter_;
+  ++latest_goal_id_;
 
   // Keep publishing until move-base acknowledges the request
   ros::Rate loop_rate_publishing(2);
@@ -44,7 +43,7 @@ bool BaseControl::move(base_control::BaseControlSrv::Request  &req,
 
   // Looping until move-base finishes moving
   ros::Rate loop_rate_waiting(2);
-  while(ros::ok() && move_base_status_ != 0) {
+  while(ros::ok() && move_base_status_ == 1) {
     ros::spinOnce();
     loop_rate_waiting.sleep();
   }
@@ -66,7 +65,7 @@ bool BaseControl::publishGoal(const geometry_msgs::Pose &target_pose) {
     goal.goal.target_pose.header.frame_id = "map";
 
     goal.goal_id.stamp = time_now;
-    goal.goal_id.id = std::to_string(goal_id_counter_);
+    goal.goal_id.id = std::to_string(latest_goal_id_);
 
     goal.header.frame_id = "map";
     goal.header.stamp = time_now;
