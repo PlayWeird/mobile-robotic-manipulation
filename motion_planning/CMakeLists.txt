@@ -11,7 +11,21 @@ find_package(catkin REQUIRED COMPONENTS
   read_dae
   roscpp
   std_msgs
+  message_generation
 )
+
+
+add_service_files(
+   FILES
+   yamRotate.srv
+)
+
+generate_messages(
+   DEPENDENCIES
+   geometry_msgs   
+   std_msgs
+)
+
 
 catkin_package(
   CATKIN_DEPENDS
@@ -20,6 +34,7 @@ catkin_package(
   read_dae
   roscpp
   std_msgs
+  message_runtime
 )
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})

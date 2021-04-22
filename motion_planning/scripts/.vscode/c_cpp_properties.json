@@ -1,0 +1,63 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/song18/autonomous_mobile_manipulation_ws/devel/include/**",
+        "/opt/ros/melodic/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/apriltag_ros/apriltag_ros/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/arm_control/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/base_control/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_planners/chomp/chomp_motion_planner/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/collada_urdf/collada_parser/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/collada_urdf/collada_urdf/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/costmap_converter/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/vision_opencv/cv_bridge/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/gazebo-pkgs/gazebo_grasp_plugin/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/gazebo-pkgs/gazebo_state_plugins/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/gazebo-pkgs/gazebo_test_tools/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/gazebo-pkgs/gazebo_version_helpers/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/gazebo-pkgs/gazebo_world_plugin_loader/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/hector_localization/hector_pose_estimation/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/hector_localization/hector_pose_estimation_core/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/vision_opencv/image_geometry/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/move_base_flex/mbf_abstract_core/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/move_base_flex/mbf_abstract_nav/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/move_base_flex/mbf_costmap_core/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/move_base_flex/mbf_costmap_nav/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/move_base_flex/mbf_simple_nav/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/move_base_flex/mbf_utility/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/motion_planning/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/move_control/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit_grasps/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_planners/chomp/chomp_interface/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_ros/benchmarks/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_plugins/moveit_ros_control_interface/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_ros/move_group/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_ros/occupancy_map_monitor/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_ros/robot_interaction/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_ros/moveit_servo/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_setup_assistant/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit/moveit_plugins/moveit_simple_controller_manager/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/moveit_visual_tools/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/general-message-pkgs/object_msgs_tools/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/octomap_ros/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_dae/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/roboticsgroup_gazebo_plugins/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/robowork_planning/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/rtabmap_ros/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/rviz_visual_tools/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/teb_local_planner/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/trac_ik/trac_ik_kinematics_plugin/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/trac_ik/trac_ik_lib/include/**",
+        "/home/song18/autonomous_mobile_manipulation_ws/src/autonomous_mobile_manipulation/deps/fmauch_universal_robot/ur_kinematics/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS"
+    }
+  ],
+  "version": 4
+}
