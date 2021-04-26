@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <tinyxml.h>
-#include "read_dae.h"
+#include "read_targets.h"
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Geometry>
 
@@ -12,7 +12,7 @@ using Eigen::Vector3d;
 using Eigen::Quaterniond;
 
 
-PoseVector read_dae(const std::string &file_path) {
+PoseVector read_targets(const std::string &file_path) {
   PoseVector pose_vector;
 
   // Load dae file

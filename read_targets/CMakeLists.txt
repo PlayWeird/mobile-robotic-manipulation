@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(read_dae)
+project(read_targets)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,7 +17,7 @@ find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES read_dae
+  LIBRARIES read_targets
   CATKIN_DEPENDS cmake_modules roscpp geometry_msgs tf2_ros
 )
 

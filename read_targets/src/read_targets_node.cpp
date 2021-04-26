@@ -1,19 +1,19 @@
 #include <ros/ros.h>
 #include <tf2_ros/static_transform_broadcaster.h>
-#include "read_dae.h"
+#include "read_targets.h"
 
 #include <string>
 
 
 int main( int argc, char** argv ) {
-  ros::init(argc, argv, "read_dae");
+  ros::init(argc, argv, "read_targets");
   ros::NodeHandle nh;
   ros::NodeHandle pnh{"~"};
 
   std::string file_path;
   pnh.getParam("file_path", file_path);
 
-  const auto target_end_effector_poses = read_dae(file_path);
+  const auto target_end_effector_poses = read_targets(file_path);
 
   tf2_ros::StaticTransformBroadcaster static_broadcaster;
 
