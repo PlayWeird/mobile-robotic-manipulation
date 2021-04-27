@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   move_control
-  read_dae
+  read_targets
   roscpp
   std_msgs
   message_generation
@@ -31,7 +31,7 @@ catkin_package(
   CATKIN_DEPENDS
   geometry_msgs
   move_control
-  read_dae
+  read_targets
   roscpp
   std_msgs
   message_runtime

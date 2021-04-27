@@ -1,0 +1,9 @@
+<launch>
+  <arg name="file_path" default="/home/melanie/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_center_position.txt"/>
+  <arg name="file_path2" default="/home/melanie/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_normals.txt"/>
+
+  <node name="read_targets" pkg="read_targets" type="read_targets_node" output="screen">
+    <param name="file_path" value="$(arg file_path)"/>
+    <param name="file_path2" value="$(arg file_path2)"/>
+  </node>
+</launch>
