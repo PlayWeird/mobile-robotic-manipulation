@@ -29,7 +29,7 @@ void init();
 
 void moveBaseStateCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);
 
-bool publishGoal(const geometry_msgs::Pose &target_pose);
+void publishGoal(const geometry_msgs::Pose &target_pose);
 
 std::unique_ptr<ros::NodeHandle> nh_;
 ros::Publisher goal_publisher_;
