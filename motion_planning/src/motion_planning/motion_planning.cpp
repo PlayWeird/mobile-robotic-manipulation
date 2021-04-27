@@ -101,8 +101,25 @@ BaseEndEffectorPoses get_69_73_poses() {
 bool MotionPlanning::run() {
   bool run_successful = true;
 
-  auto base_end_effector_poses = getFakeBaseEndEffectorPoses();
-  switch(move(base_end_effector_poses)) {
+  auto base_end_effector_poses1 = getFakeBaseEndEffectorPoses();
+  switch(move(base_end_effector_poses1)) {
+  case SUCCEEDED:
+    ROS_INFO("Control SUCCEEDED");
+    break;
+  case SERVICE_CALL_ERROR:
+    ROS_ERROR("Failed to call move_control service");
+    run_successful = false;
+    break;
+  case SERVICE_EXECUTION_ERROR:
+    ROS_WARN("Control execution FAILED");
+    run_successful = false;
+    break;
+  default:
+    break;
+  }
+
+  auto base_end_effector_poses2 = getFakeBaseEndEffectorPoses();
+  switch(move(base_end_effector_poses2)) {
   case SUCCEEDED:
     ROS_INFO("Control SUCCEEDED");
     break;
