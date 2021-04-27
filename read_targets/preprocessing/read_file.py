@@ -13,13 +13,11 @@ if __name__ == "__main__":
     mesh = o3d.io.read_triangle_mesh("boat.stl")
     # get triangles to determine the corresponding vertices of each triangle
     triangles = np.asarray(mesh.triangles)    
-    #np.savetxt('Triangles.txt', triangles, delimiter =', ')
     # get triangle normals
     triangle_normals = np.asarray(mesh.triangle_normals)
     np.savetxt("Triangle_normals.txt", triangle_normals, delimiter = ", ")
     # get vertex coordinates
     vertices = np.asarray(mesh.vertices)
-    #np.savetxt('Vertices.txt', vertices, delimiter =', ')
 
     # calculate Triangle mesh coordinates
     file = open("Triangle_center_position.txt", "w")

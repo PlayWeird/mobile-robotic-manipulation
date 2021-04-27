@@ -33,7 +33,8 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
   string data_values;
 
   if (!file_coord) {
-    cout << "Could not open file to read positions of normals! \n" << endl;
+    ROS_ERROR_STREAM("Failed to load " << file_path << " file");
+    return pose_vector;
   }
 
   while (file_coord.good()) {
@@ -70,7 +71,8 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
   i = 0, j = 0;
 
   if (!file_orientation) {
-    cout << "Could not open file to read orientation of normals! \n" << endl;
+    ROS_ERROR_STREAM("Failed to load " << file_path2 << " file");
+    return pose_vector;
   }
 
   while (file_orientation.good()) {
@@ -100,7 +102,20 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
   // calculate quaternions from two vectors
   for(int i = 0; i < size_points; ++i) {
 
-    Vector3d v1, v2, a; 
+    Vector3d normal;
+    normal << x_normals[i], y_normals[i], z_normals[i];
+    Vector3d axis_vec;
+    axis_vec << -1.0, 0.0, 0.0;
+    // Finds rotation that maps x-axis vector to normal
+    Quaterniond rotation_quaternion = Quaterniond::FromTwoVectors(axis_vec, normal);
+
+    pose_vector[i].orientation.x = rotation_quaternion.x();
+    pose_vector[i].orientation.y = rotation_quaternion.y();
+    pose_vector[i].orientation.z = rotation_quaternion.z();
+    pose_vector[i].orientation.w = rotation_quaternion.w();
+
+
+    /*Vector3d v1, v2, a; 
     v1 << -1.0 ,0.0 ,0.0;
     v2 << x_normals[i], y_normals[i], z_normals[i];
 
@@ -129,7 +144,7 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
     pose_vector[i].orientation.x /= norm;
     pose_vector[i].orientation.y /= norm;
     pose_vector[i].orientation.z /= norm;
-    pose_vector[i].orientation.w /= norm;
+    pose_vector[i].orientation.w /= norm;*/
   }
 
 
