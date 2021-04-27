@@ -1,179 +1,138 @@
 #include <ros/ros.h>
-#include <tinyxml.h>
 #include "read_targets.h"
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/Geometry>
 
 #include <sstream>
 #include <vector>
-
+#include <fstream>
+#include <string>
+using namespace std;
 
 using Eigen::Vector3d;
 using Eigen::Quaterniond;
 
 
-PoseVector read_targets(const std::string &file_path) {
+PoseVector read_targets(const std::string &file_path, const std::string &file_path2) {
   PoseVector pose_vector;
-
-  // Load dae file
-  TiXmlDocument doc{file_path};
-  bool check_file = doc.LoadFile();
-  if (!check_file) {
-    ROS_ERROR_STREAM("Failed to load " << file_path << " file");
-    return pose_vector;
-  }
-
-  // Read position vectors and unit normal vectors
-  int size_points;
-  int size_total;
-  std::vector<double> x_values;
-  std::vector<double> y_values;
-  std::vector<double> z_values;
-
-  std::vector<double> x_normal;
-  std::vector<double> y_normal;
-  std::vector<double> z_normal;
-
-  double transformation_matrix[4][4];
-
-  TiXmlElement *l_pRootElement = doc.RootElement();
-  if(l_pRootElement) {
-    // Read the points
-    TiXmlElement *l_library_geometries = l_pRootElement->FirstChildElement("library_geometries");
-    if (l_library_geometries) {
-      TiXmlElement *l_geometry = l_library_geometries->FirstChildElement("geometry");
-      if (l_geometry) {
-        TiXmlElement *l_mesh = l_geometry->FirstChildElement("mesh");
-        if (l_mesh) {
-          for (TiXmlElement* l_source = l_mesh->FirstChildElement("source"); l_source; l_source = l_source->NextSiblingElement("source")) {
-            const char *attributeOfSource = l_source->Attribute("id");
-
-            // Read position vectors
-            if (!strcmp(attributeOfSource, "riva_1-mesh-positions")) {
-              TiXmlElement *l_float_array = l_source->FirstChildElement("float_array");
-              if (l_float_array) {
-                const char *attributeOfFloat_array = l_float_array->Attribute("id");
-                const char *attributeOfFloat_array_count = l_float_array->Attribute("count");
-                size_total = strtol(attributeOfFloat_array_count, NULL, 10);
-                const char* points_str = l_float_array->GetText();
-
-                size_points = size_total / 3;
-
-                x_values.resize(size_points);
-                y_values.resize(size_points);
-                z_values.resize(size_points);
-
-                std::stringstream points_stream(points_str);
-                float data[size_total];
-                for(int i = 0; i < size_total; ++i) {
-                  points_stream >> data[i];
-                  for(int i = 0; i < size_total; ++i) {
-                    // Get x axis data
-                    if ((i)%3 == 0) {
-                      x_values[i/3] = data[i];
-                    }
-                    // Get y axis data
-                    if ((i)%3 == 1) {
-                      y_values[i/3] = data[i];
-                    }
-                    // Get z axis data
-                    if ((i)%3 == 2) {
-                      z_values[i/3] = data[i];
-                    }
-                  }
-                }
-              }
-            }
-
-            // Read normal vectors
-            if(strcmp(attributeOfSource,"riva_1-mesh-normals") == 0) {
-              TiXmlElement *l_float_array = l_source->FirstChildElement("float_array");
-              if (l_float_array) {
-                const char* points_str = l_float_array->GetText();
-
-                x_normal.resize(size_points);
-                y_normal.resize(size_points);
-                z_normal.resize(size_points);
-
-                std::stringstream points_stream(points_str);
-                float data[size_total];
-                for(int i=0; i < size_total; ++i) {
-                  points_stream >> data[i];
-                  for(int i=0; i < size_total; ++i) {
-                    // Get x-axis data
-                    if ((i)%3 == 0) {
-                      x_normal[i/3] = data[i];
-                    }
-                    // Get y-axis data
-                    if ((i)%3 == 1) {
-                      y_normal[i/3] = data[i];
-                    }
-                    // Get z-axis data
-                    if ((i)%3 == 2) {
-                      z_normal[i/3] = data[i];
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // Read transformation matrix
-    TiXmlElement *l_library_visual_scenes = l_pRootElement->FirstChildElement("library_visual_scenes");
-    if (l_library_visual_scenes) {
-      TiXmlElement *l_visual_scene = l_library_visual_scenes->FirstChildElement("visual_scene");
-      if(l_visual_scene) {
-        TiXmlElement *l_node = l_visual_scene->FirstChildElement("node");
-        if(l_node) {
-          TiXmlElement *l_matrix = l_node->FirstChildElement("matrix");
-          if(l_matrix) {
-            const char* matrix_str = l_matrix->GetText();
-
-            std::stringstream matrix_stream(matrix_str);
-
-            for (int i=0; i<4; i++) {
-              for (int j=0; j<4; j++) {
-                matrix_stream >> transformation_matrix[i][j];
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
+  int size_points = 596;
   pose_vector.resize(size_points);
 
-  for(int i = 0; i < size_points; ++i) {
-    // Compute rotation
-    Vector3d normal;
-    normal << x_normal[i], y_normal[i], z_normal[i];
-    Vector3d axis_vec;
-    axis_vec << 0.0, 0.0, 1.0;
-    // Finds rotation that maps x-axis vector to normal
-    Quaterniond rotation_quaternion = Quaterniond::FromTwoVectors(axis_vec, normal);
+	string data;
+	ifstream file_coord;
+	double x_values[size_points];
+	double y_values[size_points];
+	double z_values[size_points];
+	double x_normals[size_points];
+	double y_normals[size_points];
+	double z_normals[size_points];
 
-    // Compute transformed point
-    double point_transf[] = { 0.0, 0.0, 0.0, 0.0 };
-    double point[] = { x_values[i], y_values[i], z_values[i], 1.0 };
-    for (int i = 0; i < 4; ++i) {
-      for (int j = 0; j < 4; ++j) {
-        point_transf[i] += transformation_matrix[i][j] * point[j];
-      }
-    }
+  // read position of normals
+	file_coord.open(file_path);
+	int i = 0, j = 0;
+	string data_values;
 
-    // Convert to geometry_msgs Pose message
-    pose_vector[i].position.x = point_transf[0];
-    pose_vector[i].position.y = point_transf[1];
-    pose_vector[i].position.z = point_transf[2];
-    pose_vector[i].orientation.x = rotation_quaternion.x();
-    pose_vector[i].orientation.y = rotation_quaternion.y();
-    pose_vector[i].orientation.z = rotation_quaternion.z();
-    pose_vector[i].orientation.w = rotation_quaternion.w();
+  if (!file_coord) {
+    cout << "Could not open file to read positions of normals! \n" << endl;
   }
+
+  while (file_coord.good()) {
+    getline(file_coord, data);
+		j=0;
+		istringstream ss(data);
+
+  	while(ss>>data_values) {
+			// get x axis data
+			if (j == 0) {
+				x_values[i] = stod(data_values);
+      	pose_vector[i].position.x = x_values[i];
+			}
+			// get y axis data
+			if (j == 1) {
+				y_values[i] = stod(data_values);
+      	pose_vector[i].position.y = y_values[i];
+			}
+			// get z axis data
+			if (j == 2) {
+				z_values[i] = stod(data_values);
+      	pose_vector[i].position.z = z_values[i];
+			}
+		++j;
+		}
+	++i;
+  }
+
+  file_coord.close(); 
+
+  // read orientation of normals
+  ifstream file_orientation;
+  file_orientation.open(file_path2);
+  i = 0, j = 0;
+
+  if (!file_orientation) {
+    cout << "Could not open file to read orientation of normals! \n" << endl;
+  }
+
+  while (file_orientation.good()) {
+    getline(file_orientation, data);
+  	j=0;
+		istringstream ss2(data);
+  	while(ss2>>data_values) {
+    	// get x axis data
+    	if (j == 0) {
+      	x_normals[i] = stod(data_values);
+    	}
+    	// get y axis data
+    	if (j == 1) {
+      	y_normals[i] = stod(data_values);
+    	}
+    	// get z axis data
+    	if (j == 2) {
+      	z_normals[i] = stod(data_values);
+    	}
+    ++j;
+  	}
+  ++i;
+  }
+
+  file_orientation.close(); 
+
+  // calculate quaternions from two vectors
+  for(int i = 0; i < size_points; ++i) {
+
+    Vector3d v1, v2, a; 
+		v1 << -1.0 ,0.0 ,0.0;
+		v2 << x_normals[i], y_normals[i], z_normals[i];
+
+		if (v1.dot(v2)>0.9999) {
+			pose_vector[i].orientation.x = 0;
+			pose_vector[i].orientation.y = 0;
+			pose_vector[i].orientation.z = 0;
+			pose_vector[i].orientation.w = 1;
+		} else if(v1.dot(v2)<-0.9999) {
+			pose_vector[i].orientation.x = 0;
+			pose_vector[i].orientation.y = 0;
+			pose_vector[i].orientation.z = 1;
+			pose_vector[i].orientation.w = 0;
+		} else {
+			a = v1.cross(v2);
+			pose_vector[i].orientation.x = a(0);
+			pose_vector[i].orientation.y = a(1);
+			pose_vector[i].orientation.z = a(2);
+			pose_vector[i].orientation.w = sqrt((v1.norm()*v1.norm()) * (v2.norm()*v2.norm())) + v1.dot(v2);
+		}
+
+		double norm = sqrt(pose_vector[i].orientation.x*pose_vector[i].orientation.x + pose_vector[i].orientation.y*pose_vector[i].orientation.y + 
+    pose_vector[i].orientation.z*pose_vector[i].orientation.z + pose_vector[i].orientation.w*pose_vector[i].orientation.w);
+		if (norm == 0) {
+    	norm = 1;
+		}
+		pose_vector[i].orientation.x /= norm;
+		pose_vector[i].orientation.y /= norm;
+		pose_vector[i].orientation.z /= norm;
+		pose_vector[i].orientation.w /= norm;
+	}
+
 
   return pose_vector;
 }

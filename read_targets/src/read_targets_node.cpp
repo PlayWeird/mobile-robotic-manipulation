@@ -12,8 +12,10 @@ int main( int argc, char** argv ) {
 
   std::string file_path;
   pnh.getParam("file_path", file_path);
+  std::string file_path2;
+  pnh.getParam("file_path2", file_path2);
 
-  const auto target_end_effector_poses = read_targets(file_path);
+  const auto target_end_effector_poses = read_targets(file_path, file_path2);
 
   tf2_ros::StaticTransformBroadcaster static_broadcaster;
 
