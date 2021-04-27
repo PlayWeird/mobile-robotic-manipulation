@@ -114,37 +114,6 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
     pose_vector[i].orientation.z = rotation_quaternion.z();
     pose_vector[i].orientation.w = rotation_quaternion.w();
 
-
-    /*Vector3d v1, v2, a; 
-    v1 << -1.0 ,0.0 ,0.0;
-    v2 << x_normals[i], y_normals[i], z_normals[i];
-
-    if (v1.dot(v2)>0.9999) {
-      pose_vector[i].orientation.x = 0;
-      pose_vector[i].orientation.y = 0;
-      pose_vector[i].orientation.z = 0;
-      pose_vector[i].orientation.w = 1;
-    } else if(v1.dot(v2)<-0.9999) {
-      pose_vector[i].orientation.x = 0;
-      pose_vector[i].orientation.y = 0;
-      pose_vector[i].orientation.z = 1;
-      pose_vector[i].orientation.w = 0;
-    } else {
-      a = v1.cross(v2);
-      pose_vector[i].orientation.x = a(0);
-      pose_vector[i].orientation.y = a(1);
-      pose_vector[i].orientation.z = a(2);
-      pose_vector[i].orientation.w = sqrt((v1.norm()*v1.norm()) * (v2.norm()*v2.norm())) + v1.dot(v2);
-    }
-
-    double norm = sqrt(pose_vector[i].orientation.x*pose_vector[i].orientation.x + pose_vector[i].orientation.y*pose_vector[i].orientation.y + pose_vector[i].orientation.z*pose_vector[i].orientation.z + pose_vector[i].orientation.w*pose_vector[i].orientation.w);
-    if (norm == 0) {
-      norm = 1;
-    }
-    pose_vector[i].orientation.x /= norm;
-    pose_vector[i].orientation.y /= norm;
-    pose_vector[i].orientation.z /= norm;
-    pose_vector[i].orientation.w /= norm;*/
   }
 
 
