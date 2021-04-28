@@ -9,32 +9,43 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <utility>
 
 using namespace cv;
-typedef std::vector<Point2f> PointList2D;
-typedef std::vector<Point3f> PointList3D;
+using PointList2D = std::vector<Point2f>;
+using PointList3D = std::vector<Point3f>;
+
 
 class TouchPlanner {
-	public:
-	TouchPlanner(int argc, char **argv);
-	~TouchPlanner();
+public:
+TouchPlanner(int argc, char **argv);
 
-	bool waiting_for_points;
+~TouchPlanner() {
+  nh_.reset();
+}
 
-	private:
+bool waiting_for_points;
 
-	void init();
-	void tfStaticCallback(const tf2_msgs::TFMessage);
-	void padConvexHull(float pad, PointList2D &hull_points);
-	PointList2D subdividePath(int num_subdivisions, const PointList2D hull_points);
-	
-	ros::Subscriber tf_static_subscriber_;
-	std::unique_ptr<ros::NodeHandle> nh_;
-	std::unique_ptr<ros::NodeHandle> pnh_;
-
-	PointList2D mesh_points_2D;
-	PointList3D mesh_points_3D;
+private:
+struct Clusters {
+  std::vector<geometry_msgs::Pose> way_points;
+  std::vector<geometry_msgs::Pose> touch_points;
+  std::vector<std::pair<int, int> > way_touch_association;
 };
 
-float magnitude_calculator(Point2f v);
-Point2f unit_vector_calculator(Point2f v);
+void init() {
+  auto clusters = getClusters();
+  // TODO: filter clusters
+}
+
+Clusters getClusters();
+// Clusters clustering();
+
+void padConvexHull(float pad, PointList2D &hull_points);
+PointList2D subdividePath(int num_subdivisions, const PointList2D &hull_points);
+
+std::unique_ptr<ros::NodeHandle> nh_;
+
+PointList2D mesh_points_2D_;
+PointList3D mesh_points_3D_;
+};
