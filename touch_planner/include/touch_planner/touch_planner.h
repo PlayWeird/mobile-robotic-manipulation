@@ -13,7 +13,12 @@
 
 using namespace cv;
 using PointList2D = std::vector<Point2f>;
-using PointList3D = std::vector<Point3f>;
+
+
+struct Task {
+  geometry_msgs::Pose base_pose;
+  std::vector<geometry_msgs::Pose> end_effector_poses;
+};
 
 
 class TouchPlanner {
@@ -24,7 +29,8 @@ TouchPlanner(int argc, char **argv);
   nh_.reset();
 }
 
-bool waiting_for_points;
+Task nextTask();
+void reportStatus(); // Should have input variables
 
 private:
 struct Clusters {
@@ -33,19 +39,18 @@ struct Clusters {
   std::vector<std::pair<int, int> > way_touch_association;
 };
 
-void init() {
-  auto clusters = getClusters();
-  // TODO: filter clusters
-}
+void init();
+
+std::vector<geometry_msgs::Pose> getWayPoints(const std::vector<geometry_msgs::Pose> &touch_points);
 
 Clusters getClusters();
-// Clusters clustering();
+Clusters clustering(const std::vector<geometry_msgs::Pose> &way_points,
+                    const std::vector<geometry_msgs::Pose> &touch_points);
 
 void padConvexHull(float pad, PointList2D &hull_points);
 PointList2D subdividePath(int num_subdivisions, const PointList2D &hull_points);
 
 std::unique_ptr<ros::NodeHandle> nh_;
 
-PointList2D mesh_points_2D_;
-PointList3D mesh_points_3D_;
+Clusters clusters_;
 };

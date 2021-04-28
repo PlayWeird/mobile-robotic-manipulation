@@ -10,59 +10,95 @@ TouchPlanner::TouchPlanner(int argc, char **argv) :
   nh_(new ros::NodeHandle()) {
   init();
   ROS_INFO("Initialized TouchPlanner");
-  waiting_for_points = true;
 }
 
 
-TouchPlanner::Clusters TouchPlanner::getClusters() {
-  const auto target_end_effector_poses = read_targets(
-    "/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_center_position.txt",
-    "/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_normals.txt"
-    );
+void TouchPlanner::init() {
+  const auto clusters = getClusters();
+  clusters_.way_points = clusters.way_points;
+  clusters_.touch_points = clusters.touch_points;
+  clusters_.way_touch_association = clusters.way_touch_association;
+}
 
+
+Task TouchPlanner::nextTask() {
+  // TODO: send a task to the motion planning
+  return Task();
+}
+
+
+void TouchPlanner::reportStatus() {
+  // TODO: allow motion planning to report status of task
+}
+
+
+std::vector<geometry_msgs::Pose> TouchPlanner::getWayPoints(const std::vector<geometry_msgs::Pose> &touch_points) {
   float x, y, z;
   PointList2D hull_points;
   // Project transforms onto ground plane and store
-  for(auto pose : target_end_effector_poses) {
+  PointList2D mesh_points_2D;
+  for(auto pose : touch_points) {
     x = pose.position.x;
     y = pose.position.y;
     z = pose.position.z;
-    mesh_points_2D_.push_back(Point2f(x, y));
-    mesh_points_3D_.push_back(Point3f(x, y, z));
+    mesh_points_2D.push_back(Point2f(x, y));
   }
 
-  waiting_for_points = false;
-
-  // std::cout << mesh_points_2D_ << std::endl << std::endl;
   // Get the convex hull of the boat
-  convexHull(mesh_points_2D_, hull_points, true);
-
-  std::cout << hull_points << std::endl << std::endl;
+  convexHull(mesh_points_2D, hull_points, true);
 
   // Pad convex hull
   padConvexHull(.3, hull_points);
-  std::cout << hull_points << std::endl << std::endl;
 
   // Subdivide path
   auto sample_points = subdividePath(100, hull_points);
 
-  std::cout << sample_points << std::endl << std::endl;
-  // Cluster hull_points to all sampled points
+  // TODO: get poses of way points
+  std::vector<geometry_msgs::Pose> way_points;
+  for (const auto &point : sample_points) {
+    geometry_msgs::Pose way_point;
+    way_point.position.x = point.x;
+    way_point.position.y = point.y;
+    way_point.position.z = 0.0;
+    // TODO compute orientation for waypoints
+    way_point.orientation.x = 0.0;
+    way_point.orientation.y = 0.0;
+    way_point.orientation.z = 0.0;
+    way_point.orientation.w = 1.0;
 
-  // Variables
+    way_points.push_back(way_point);
+  }
 
-  // heuristic metric can be a function for more complex heuristics
-  float heuristic_metric = 1.0;   // in meters
-  // carry along cluster metric for base_waypoint elimination
-  float worst_cluster_center_metric;
-  int worst_cluster_center_index = 0;
+  return way_points;
+}
+
+
+TouchPlanner::Clusters TouchPlanner::getClusters() {
+  const auto touch_points = read_targets(
+    "/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_center_position.txt",
+    "/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_normals.txt"
+    );
+
+  const auto way_points = getWayPoints(touch_points);
+
+  return clustering(way_points, touch_points);
 };
 
 
-// TouchPlanner::Clusters TouchPlanner::clustering(const std::vector<geometry_msgs::Pose> &way_points,
-//                                                 const std::vector<geometry_msgs::Pose> &touch_points) {
-//   // TODO: perform clustering
-// };
+TouchPlanner::Clusters TouchPlanner::clustering(const std::vector<geometry_msgs::Pose> &way_points,
+                                                const std::vector<geometry_msgs::Pose> &touch_points) {
+  Clusters clusters;
+
+  // heuristic metric can be a function for more complex heuristics
+  float heuristic_metric = 1.0;             // in meters
+  // carry along cluster metric for base_waypoint elimination
+  float worst_cluster_center_metric;
+  int worst_cluster_center_index = 0;
+
+  // TODO: write clustering algorithm
+
+  return clusters;
+};
 
 
 void TouchPlanner::padConvexHull(float pad, PointList2D &hull_points){

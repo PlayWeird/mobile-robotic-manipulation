@@ -4,7 +4,7 @@
 
 
 MotionPlanning::MotionPlanning(int argc, char **argv) :
-  nh_(new ros::NodeHandle()){
+  nh_(new ros::NodeHandle()), touch_planner_(argc, argv) {
   init();
   ROS_INFO("Initalized MotionPlanning");
 }
@@ -55,13 +55,13 @@ std::vector<geometry_msgs::Pose> makeEndEffectorPoses(const geometry_msgs::Pose 
 }
 
 
-BaseEndEffectorPoses getFakeBaseEndEffectorPoses() {
+Task getFakeTask() {
   auto base_pose = makeBasePose();
-  return BaseEndEffectorPoses{.base_pose = base_pose, .end_effector_poses = makeEndEffectorPoses(base_pose)};
+  return Task{.base_pose = base_pose, .end_effector_poses = makeEndEffectorPoses(base_pose)};
 }
 
 
-BaseEndEffectorPoses get_69_73_poses() {
+Task get_69_73_poses() {
   geometry_msgs::Pose pose_73;
   pose_73.position.x = 2.667;
   pose_73.position.y = -0.472;
@@ -93,7 +93,7 @@ BaseEndEffectorPoses get_69_73_poses() {
   base_pose.orientation.z = 0.0;
   base_pose.orientation.w = 1.0;
 
-  return BaseEndEffectorPoses{.base_pose = base_pose, .end_effector_poses = ee_poses};
+  return Task{.base_pose = base_pose, .end_effector_poses = ee_poses};
 }
 /* ---------Experiment ends here--------- */
 
@@ -101,7 +101,7 @@ BaseEndEffectorPoses get_69_73_poses() {
 bool MotionPlanning::run() {
   bool run_successful = true;
 
-  auto base_end_effector_poses1 = getFakeBaseEndEffectorPoses();
+  auto base_end_effector_poses1 = getFakeTask();
   switch(move(base_end_effector_poses1)) {
   case SUCCEEDED:
     ROS_INFO("Control SUCCEEDED");
@@ -118,7 +118,7 @@ bool MotionPlanning::run() {
     break;
   }
 
-  auto base_end_effector_poses2 = getFakeBaseEndEffectorPoses();
+  auto base_end_effector_poses2 = getFakeTask();
   switch(move(base_end_effector_poses2)) {
   case SUCCEEDED:
     ROS_INFO("Control SUCCEEDED");
@@ -144,7 +144,7 @@ bool MotionPlanning::run() {
 // Return  0: control execution successful.
 // Return -1: service call failed.
 // Return -2: control execution failed.
-MotionPlanning::ServiceStatus MotionPlanning::move(const BaseEndEffectorPoses &base_end_effector_poses) {
+MotionPlanning::ServiceStatus MotionPlanning::move(const Task &base_end_effector_poses) {
   // Prepare service call message
   move_control::MoveControlSrv move_control_srv;
   move_control_srv.request.base_pose = base_end_effector_poses.base_pose;
