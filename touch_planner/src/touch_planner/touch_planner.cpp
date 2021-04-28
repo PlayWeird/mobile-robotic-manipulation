@@ -53,7 +53,6 @@ std::vector<geometry_msgs::Pose> TouchPlanner::getWayPoints(const std::vector<ge
   // Subdivide path
   auto sample_points = subdividePath(100, hull_points);
 
-  // TODO: get poses of way points
   std::vector<geometry_msgs::Pose> way_points;
   for (const auto &point : sample_points) {
     geometry_msgs::Pose way_point;
