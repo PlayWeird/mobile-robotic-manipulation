@@ -15,7 +15,7 @@ using Eigen::Quaterniond;
 
 PoseVector read_targets(const std::string &file_path, const std::string &file_path2) {
   PoseVector pose_vector;
-  int size_points = 596;
+  int size_points = 576;
   pose_vector.resize(size_points);
 
   string data;
