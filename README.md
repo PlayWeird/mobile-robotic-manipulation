@@ -34,8 +34,7 @@ Build the packages in this project repository (replace `<your_catkin_ws>` with y
 ```
 cd ~/<your_catkin_ws>/src/mobile-robotic-manipulation
 
-CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build sample_control
-CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build read_dae
+CMAKE_PREFIX_PATH=~/<your_catkin_ws>/devel:/opt/ros/melodic catkin build motion_planning
 ```
 
 # Run sample control simulation
@@ -61,7 +60,7 @@ ROS_NAMESPACE="bvr_SIM" roslaunch move_control move_control.launch
 
 Wait until terminal 3 finishes setting up control services (after about 5 seconds), in terminal 4, run:
 ```
-ROS_NAMESPACE="bvr_SIM" rosrun sample_control sample_control_node
+ROS_NAMESPACE="bvr_SIM" rosrun motion_planning motion_planning_node
 ```
 
 ## Expected result
