@@ -27,7 +27,7 @@ Task TouchPlanner::nextTask() {
 }
 
 
-void TouchPlanner::reportStatus() {
+void TouchPlanner::reportStatus() { // have input variable here
   // TODO: allow motion planning to report status of task
 }
 

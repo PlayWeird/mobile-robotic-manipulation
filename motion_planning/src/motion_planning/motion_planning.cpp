@@ -101,6 +101,9 @@ Task get_69_73_poses() {
 bool MotionPlanning::run() {
   bool run_successful = true;
 
+  // TODO: call touch planner to get the next task.
+  // TODO: report task status to touch planner to get the next task.
+
   auto base_end_effector_poses1 = getFakeTask();
   switch(move(base_end_effector_poses1)) {
   case SUCCEEDED:
