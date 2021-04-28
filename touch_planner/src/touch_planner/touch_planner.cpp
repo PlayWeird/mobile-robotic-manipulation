@@ -2,8 +2,8 @@
 #include "read_targets/read_targets.h"
 
 
-float magnitude_calculator(Point2f v);
-Point2f unit_vector_calculator(Point2f v);
+double magnitude_calculator(Point2d v);
+Point2d unit_vector_calculator(Point2d v);
 
 
 TouchPlanner::TouchPlanner(int argc, char **argv) :
@@ -33,7 +33,7 @@ void TouchPlanner::reportStatus() {
 
 
 std::vector<geometry_msgs::Pose> TouchPlanner::getWayPoints(const std::vector<geometry_msgs::Pose> &touch_points) {
-  float x, y, z;
+  double x, y, z;
   PointList2D hull_points;
   // Project transforms onto ground plane and store
   PointList2D mesh_points_2D;
@@ -41,7 +41,7 @@ std::vector<geometry_msgs::Pose> TouchPlanner::getWayPoints(const std::vector<ge
     x = pose.position.x;
     y = pose.position.y;
     z = pose.position.z;
-    mesh_points_2D.push_back(Point2f(x, y));
+    mesh_points_2D.push_back(Point2d(x, y));
   }
 
   // Get the convex hull of the boat
@@ -89,9 +89,9 @@ TouchPlanner::Clusters TouchPlanner::clustering(const std::vector<geometry_msgs:
   Clusters clusters;
 
   // heuristic metric can be a function for more complex heuristics
-  float heuristic_metric = 1.0;             // in meters
+  double heuristic_metric = 1.0;             // in meters
   // carry along cluster metric for base_waypoint elimination
-  float worst_cluster_center_metric;
+  double worst_cluster_center_metric;
   int worst_cluster_center_index = 0;
 
   // TODO: write clustering algorithm
@@ -100,12 +100,12 @@ TouchPlanner::Clusters TouchPlanner::clustering(const std::vector<geometry_msgs:
 };
 
 
-void TouchPlanner::padConvexHull(float pad, PointList2D &hull_points){
+void TouchPlanner::padConvexHull(double pad, PointList2D &hull_points){
   // pad the boats hull
   auto M = moments(hull_points);
-  float cx = M.m10 / (M.m00 + 0.0001);
-  float cy = M.m01 / (M.m00 + 0.0001);
-  Point2f offset = Point2f(cx, cy);
+  double cx = M.m10 / (M.m00 + 0.0001);
+  double cy = M.m01 / (M.m00 + 0.0001);
+  Point2d offset = Point2d(cx, cy);
   for(int i=0; i < hull_points.size(); i++) {
     hull_points[i] -= offset;
     hull_points[i] += pad * unit_vector_calculator(hull_points[i]);
@@ -117,9 +117,9 @@ void TouchPlanner::padConvexHull(float pad, PointList2D &hull_points){
 PointList2D TouchPlanner::subdividePath(int num_subdivisions, const PointList2D &hull_points){
   // find the length of the path.
   PointList2D unit_vectors;
-  std::vector<float> path_distances;
-  float total_path_length = 0;
-  Point2f tangent_vector;
+  std::vector<double> path_distances;
+  double total_path_length = 0;
+  Point2d tangent_vector;
   for(int i=0; i < hull_points.size(); i++) {
     path_distances.push_back(total_path_length);
     if(i < hull_points.size() - 1) {
@@ -132,10 +132,10 @@ PointList2D TouchPlanner::subdividePath(int num_subdivisions, const PointList2D 
   // subdivide path into evenly spaced points
   PointList2D sample_points;
   int hull_index = 1;
-  Point2f vec_from_prev;
-  float distance_from_prev;
+  Point2d vec_from_prev;
+  double distance_from_prev;
   for(int i=0; i < num_subdivisions; i++) {
-    float sample_distance = i * total_path_length / (num_subdivisions - 1);
+    double sample_distance = i * total_path_length / (num_subdivisions - 1);
     while(sample_distance > path_distances[hull_index]) {
       hull_index++;
     }
@@ -147,11 +147,11 @@ PointList2D TouchPlanner::subdividePath(int num_subdivisions, const PointList2D 
 }
 
 
-float magnitude_calculator(Point2f v){
+double magnitude_calculator(Point2d v){
   return pow(v.x * v.x + v.y * v.y, 0.5);
 }
 
 
-Point2f unit_vector_calculator(Point2f v){
+Point2d unit_vector_calculator(Point2d v){
   return v / magnitude_calculator(v);
 }

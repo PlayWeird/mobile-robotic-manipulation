@@ -12,7 +12,7 @@
 #include <utility>
 
 using namespace cv;
-using PointList2D = std::vector<Point2f>;
+using PointList2D = std::vector<Point2d>;
 
 
 struct Task {
@@ -47,7 +47,7 @@ Clusters getClusters();
 Clusters clustering(const std::vector<geometry_msgs::Pose> &way_points,
                     const std::vector<geometry_msgs::Pose> &touch_points);
 
-void padConvexHull(float pad, PointList2D &hull_points);
+void padConvexHull(double pad, PointList2D &hull_points);
 PointList2D subdividePath(int num_subdivisions, const PointList2D &hull_points);
 
 std::unique_ptr<ros::NodeHandle> nh_;
