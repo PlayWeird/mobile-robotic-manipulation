@@ -2,9 +2,9 @@
 #include "read_targets/read_targets.h"
 
 
-double magnitude_calculator(Point2d v);
-Point2d unit_vector_calculator(Point2d v);
-
+double magnitude_calculator(Point2f v);
+Point2f unit_vector_calculator(Point2f v);
+bool all_true(std::vector<bool> bools);
 
 TouchPlanner::TouchPlanner(int argc, char **argv) :
   nh_(new ros::NodeHandle()) {
@@ -32,7 +32,7 @@ void TouchPlanner::reportStatus() { // have input variable here
 }
 
 
-std::vector<geometry_msgs::Pose> TouchPlanner::getWayPoints(const std::vector<geometry_msgs::Pose> &touch_points) {
+PoseList TouchPlanner::getWayPoints(const PoseList &touch_points) {
   double x, y, z;
   PointList2D hull_points;
   // Project transforms onto ground plane and store
@@ -41,7 +41,7 @@ std::vector<geometry_msgs::Pose> TouchPlanner::getWayPoints(const std::vector<ge
     x = pose.position.x;
     y = pose.position.y;
     z = pose.position.z;
-    mesh_points_2D.push_back(Point2d(x, y));
+    mesh_points_2D.push_back(Point2f(x, y));
   }
 
   // Get the convex hull of the boat
@@ -53,7 +53,7 @@ std::vector<geometry_msgs::Pose> TouchPlanner::getWayPoints(const std::vector<ge
   // Subdivide path
   auto sample_points = subdividePath(100, hull_points);
 
-  std::vector<geometry_msgs::Pose> way_points;
+  PoseList way_points;
   for (const auto &point : sample_points) {
     geometry_msgs::Pose way_point;
     way_point.position.x = point.x;
@@ -74,27 +74,39 @@ std::vector<geometry_msgs::Pose> TouchPlanner::getWayPoints(const std::vector<ge
 
 TouchPlanner::Clusters TouchPlanner::getClusters() {
   const auto touch_points = read_targets(
-    "/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_center_position.txt",
-    "/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_normals.txt"
+    "/home/gaetano/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_center_position.txt",
+    "/home/gaetano/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_normals.txt"
     );
 
   const auto way_points = getWayPoints(touch_points);
-
-  return clustering(way_points, touch_points);
+  PlannerMetric metric;
+  return clustering(way_points, touch_points, metric);
 };
 
 
-TouchPlanner::Clusters TouchPlanner::clustering(const std::vector<geometry_msgs::Pose> &way_points,
-                                                const std::vector<geometry_msgs::Pose> &touch_points) {
+TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points,
+                                                const PoseList &touch_points,
+                                                PlannerMetric &metric) {
   Clusters clusters;
 
   // heuristic metric can be a function for more complex heuristics
-  double heuristic_metric = 1.0;             // in meters
+  double heuristic_metric = 1.0;
   // carry along cluster metric for base_waypoint elimination
   double worst_cluster_center_metric;
   int worst_cluster_center_index = 0;
 
+  std::vector<bool> is_touchpoint_covered(touch_points.size(), false);
+  std::vector<int> considered_waypoint_indxs;
+  boost::push_back(considered_waypoint_indxs, boost::irange(0, (int)way_points.size()));
+  
+  std::vector<int> final_waypoint_indxs;
+
   // TODO: write clustering algorithm
+  while(ros::ok() && !all_true(is_touchpoint_covered)){
+    // remove redundant points
+    // remove worst point
+    // check for unique touch points
+  }
 
   return clusters;
 };
@@ -105,7 +117,7 @@ void TouchPlanner::padConvexHull(double pad, PointList2D &hull_points){
   auto M = moments(hull_points);
   double cx = M.m10 / (M.m00 + 0.0001);
   double cy = M.m01 / (M.m00 + 0.0001);
-  Point2d offset = Point2d(cx, cy);
+  Point2f offset = Point2f(cx, cy);
   for(int i=0; i < hull_points.size(); i++) {
     hull_points[i] -= offset;
     hull_points[i] += pad * unit_vector_calculator(hull_points[i]);
@@ -119,7 +131,7 @@ PointList2D TouchPlanner::subdividePath(int num_subdivisions, const PointList2D 
   PointList2D unit_vectors;
   std::vector<double> path_distances;
   double total_path_length = 0;
-  Point2d tangent_vector;
+  Point2f tangent_vector;
   for(int i=0; i < hull_points.size(); i++) {
     path_distances.push_back(total_path_length);
     if(i < hull_points.size() - 1) {
@@ -129,10 +141,11 @@ PointList2D TouchPlanner::subdividePath(int num_subdivisions, const PointList2D 
     }
   }
 
+
   // subdivide path into evenly spaced points
   PointList2D sample_points;
   int hull_index = 1;
-  Point2d vec_from_prev;
+  Point2f vec_from_prev;
   double distance_from_prev;
   for(int i=0; i < num_subdivisions; i++) {
     double sample_distance = i * total_path_length / (num_subdivisions - 1);
@@ -147,11 +160,15 @@ PointList2D TouchPlanner::subdividePath(int num_subdivisions, const PointList2D 
 }
 
 
-double magnitude_calculator(Point2d v){
+double magnitude_calculator(Point2f v){
   return pow(v.x * v.x + v.y * v.y, 0.5);
 }
 
 
-Point2d unit_vector_calculator(Point2d v){
+Point2f unit_vector_calculator(Point2f v){
   return v / magnitude_calculator(v);
+}
+
+bool all_true(std::vector<bool> bools){
+  return std::all_of(bools.begin(), bools.end(), [](bool v) {return v;});
 }

@@ -10,14 +10,17 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <boost/range/irange.hpp>
+#include <boost/range/algorithm_ext.hpp>
 
 using namespace cv;
-using PointList2D = std::vector<Point2d>;
+using PointList2D = std::vector<Point2f>;
+using PoseList = std::vector<geometry_msgs::Pose>;
 
 
 struct Task {
   geometry_msgs::Pose base_pose;
-  std::vector<geometry_msgs::Pose> end_effector_poses;
+  PoseList end_effector_poses;
 };
 
 
@@ -32,20 +35,28 @@ TouchPlanner(int argc, char **argv);
 Task nextTask();
 void reportStatus(); // Should have input variables
 
-private:
-struct Clusters {
-  std::vector<geometry_msgs::Pose> way_points;
-  std::vector<geometry_msgs::Pose> touch_points;
-  std::vector<std::pair<int, int> > way_touch_association;
-};
+  class PlannerMetric {
+  public:
+    PlannerMetric(){};
+    ~PlannerMetric(){};
+    // virtual
+  };
+
+  private:
+  struct Clusters {
+    PoseList way_points;
+    PoseList touch_points;
+    std::vector<std::pair<int, int> > way_touch_association;
+  };
 
 void init();
 
-std::vector<geometry_msgs::Pose> getWayPoints(const std::vector<geometry_msgs::Pose> &touch_points);
+PoseList getWayPoints(const PoseList &touch_points);
 
 Clusters getClusters();
-Clusters clustering(const std::vector<geometry_msgs::Pose> &way_points,
-                    const std::vector<geometry_msgs::Pose> &touch_points);
+Clusters clustering(const PoseList &way_points,
+                    const PoseList &touch_points,
+                    PlannerMetric &metric);
 
 void padConvexHull(double pad, PointList2D &hull_points);
 PointList2D subdividePath(int num_subdivisions, const PointList2D &hull_points);
