@@ -14,22 +14,20 @@ using Eigen::Quaterniond;
 
 
 PoseVector read_targets(const std::string &file_path, const std::string &file_path2) {
-  PoseVector pose_vector;
-  int size_points = 576;
-  pose_vector.resize(size_points);
 
+  PoseVector pose_vector;
   string data;
   ifstream file_coord;
-  double x_values[size_points];
-  double y_values[size_points];
-  double z_values[size_points];
-  double x_normals[size_points];
-  double y_normals[size_points];
-  double z_normals[size_points];
+  vector<double> x_values;
+  vector<double> y_values;
+  vector<double> z_values;
+  vector<double> x_normals;
+  vector<double> y_normals;
+  vector<double> z_normals;
 
   // read position of normals
   file_coord.open(file_path);
-  int i = 0, j = 0;
+  int count = 0, j = 0;
   string data_values;
 
   if (!file_coord) {
@@ -45,22 +43,19 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
     while(ss>>data_values) {
       // get x axis data
       if (j == 0) {
-        x_values[i] = stod(data_values);
-        pose_vector[i].position.x = x_values[i];
+        x_values.push_back(stod(data_values));
       }
       // get y axis data
       if (j == 1) {
-        y_values[i] = stod(data_values);
-        pose_vector[i].position.y = y_values[i];
+        y_values.push_back(stod(data_values));
       }
       // get z axis data
       if (j == 2) {
-        z_values[i] = stod(data_values);
-        pose_vector[i].position.z = z_values[i];
+        z_values.push_back(stod(data_values));
       }
       ++j;
     }
-    ++i;
+    ++count;
   }
 
   file_coord.close(); 
@@ -68,7 +63,7 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
   // read orientation of normals
   ifstream file_orientation;
   file_orientation.open(file_path2);
-  i = 0, j = 0;
+  count = 0, j = 0;
 
   if (!file_orientation) {
     ROS_ERROR_STREAM("Failed to load " << file_path2 << " file");
@@ -82,31 +77,38 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
     while(ss2>>data_values) {
       // get x axis data
       if (j == 0) {
-        x_normals[i] = stod(data_values);
+        x_normals.push_back(stod(data_values));
       }
       // get y axis data
       if (j == 1) {
-        y_normals[i] = stod(data_values);
+        y_normals.push_back(stod(data_values));
       }
       // get z axis data
       if (j == 2) {
-        z_normals[i] = stod(data_values);
+        z_normals.push_back(stod(data_values));
       }
       ++j;
     }
-  ++i;
+  ++count;
   }
 
   file_orientation.close(); 
 
-  // calculate quaternions from two vectors
-  for(int i = 0; i < size_points; ++i) {
+  pose_vector.resize(count-1);
 
+  // assigning data to pose vector
+  for(int i = 0; i < count-1; ++i) {
+
+  	pose_vector[i].position.x = x_values[i];
+  	pose_vector[i].position.y = y_values[i];
+  	pose_vector[i].position.z = z_values[i];
+
+    // calculate quaternions from two vectors
+    // finds rotation that maps x-axis vector to normal
     Vector3d normal;
     normal << x_normals[i], y_normals[i], z_normals[i];
     Vector3d axis_vec;
     axis_vec << -1.0, 0.0, 0.0;
-    // Finds rotation that maps x-axis vector to normal
     Quaterniond rotation_quaternion = Quaterniond::FromTwoVectors(axis_vec, normal);
 
     pose_vector[i].orientation.x = rotation_quaternion.x();
@@ -115,7 +117,6 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
     pose_vector[i].orientation.w = rotation_quaternion.w();
 
   }
-
 
   return pose_vector;
 }
