@@ -21,8 +21,8 @@ if __name__ == "__main__":
 
     # calculate Triangle mesh coordinates
     file = open("Triangle_center_position.txt", "w")
-    # take 3 rows of vertices at a time. Length of the for loop and corresponding vertices of each triangle were determined with "triangles" parameter
-    for i in range(0, 1727, 3):
+    # take 3 rows of vertices at a time. Corresponding vertices of each triangle were determined with "triangles" parameter
+    for i in range(0, len(vertices), 3):
         vertices_three_rows = vertices[i:i + 3]
         x1, x2, x3 = vertices_three_rows[0, 0], vertices_three_rows[1, 0], vertices_three_rows[2, 0]
         y1, y2, y3 = vertices_three_rows[0, 1], vertices_three_rows[1, 1], vertices_three_rows[2, 1]
