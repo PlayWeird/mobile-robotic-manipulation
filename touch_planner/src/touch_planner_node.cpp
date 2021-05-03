@@ -3,7 +3,8 @@
 
 int main(int argc, char **argv){
   ros::init(argc, argv, "touch_planner");
-  TouchPlanner planner{argc, argv};
+  PlannerMetric metric(1.0);
+  TouchPlanner planner{metric};
 
   ROS_INFO("All points acquired!");
   return 0;

@@ -9,7 +9,7 @@
 
 class MotionPlanning {
 public:
-MotionPlanning(int argc, char **argv);
+MotionPlanning(int argc, char **argv, PlannerMetric metric);
 ~MotionPlanning() {
   nh_.reset();
 }

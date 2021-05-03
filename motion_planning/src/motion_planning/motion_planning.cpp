@@ -3,8 +3,8 @@
 #include <geometry_msgs/Pose.h>
 
 
-MotionPlanning::MotionPlanning(int argc, char **argv) :
-  nh_(new ros::NodeHandle()), touch_planner_(argc, argv) {
+MotionPlanning::MotionPlanning(int argc, char **argv, PlannerMetric metric) :
+  nh_(new ros::NodeHandle()), touch_planner_(metric) {
   init();
   ROS_INFO("Initalized MotionPlanning");
 }
