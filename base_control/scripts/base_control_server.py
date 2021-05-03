@@ -19,14 +19,13 @@ def handle_base_control(req):
 
     goal = MoveBaseGoal()
     
-    goal.target_pose.pose.position = req.position
-    goal.target_pose.pose.orientation = req.orientation
+    goal.target_pose.pose.position = req.pose.position
+    goal.target_pose.pose.orientation = req.pose.orientation
     goal.target_pose.header.frame_id = "map"
     goal.target_pose.header.stamp = rospy.Time.now()
 
     ac.send_goal(goal)
     ac.wait_for_result()
-    #ac.wait_for_result(rospy.Duration(30))
     
     if(ac.get_state() == GoalStatus.SUCCEEDED):
         
@@ -38,28 +37,18 @@ def handle_base_control(req):
     else:
         rospy.logwarn("Unknown move-base error")
         return UNKNOWN_ERROR
+    
 
 
 
 def base_control_server():
     rospy.init_node("base_control_server", anonymous=True)
     rospy.loginfo(("Initialized BaseControl"))
-    s = rospy.Service("/base_control", BaseControlSrv, handle_base_control)
+    s = rospy.Service("base_control", BaseControlSrv, handle_base_control)
     rospy.spin()
 
 
 if __name__ == '__main__':
-    # rospy.init_node("base_control_server", anonymous=True)
-    # rospy.loginfo(("Initialized BaseControl"))
-    # demopose = Pose()
-    # demopose.position.x = 4.2
-    # demopose.position.y = 1.2
-    # demopose.position.z = 0
-
-    # demopose.orientation.x = 0
-    # demopose.orientation.y = 0
-    # demopose.orientation.z = 0
-    # demopose.orientation.w = 1
     base_control_server()
-    # print(handle_base_control(demopose))
+
    
