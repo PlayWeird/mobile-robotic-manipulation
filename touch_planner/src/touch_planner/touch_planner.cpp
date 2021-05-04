@@ -1,5 +1,6 @@
 #include "touch_planner.h"
 #include "read_targets/read_targets.h"
+#include <algorithm>
 
 
 double magnitude_calculator(Point2f v);
@@ -370,6 +371,10 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
     you will need the metric_matric inorder to get the waypoint to touchpoint
     distances
   */
+    populate_metric_matrix(clusters.way_points);
+    for(int i = 0; i < clusters.way_points.size(); i++){
+       sort(metric_matrix[i].begin(), metric_matrix[i].end());
+    }
 }
 
 double magnitude_calculator(Point2f v){
