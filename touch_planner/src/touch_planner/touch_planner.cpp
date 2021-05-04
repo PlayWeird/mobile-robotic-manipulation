@@ -63,10 +63,12 @@ PoseList TouchPlanner::getWayPoints() {
   convexHull(mesh_points_2D, hull_points, true);
 
   // Pad convex hull
-  padConvexHull(.3, hull_points);
+  float pad_size = .2;
+  padConvexHull(pad_size, hull_points);
 
   // Subdivide path
-  auto sample_points = subdividePath(100, hull_points);
+  int num_subdivisions = 150;
+  auto sample_points = subdividePath(num_subdivisions, hull_points);
 
   PoseList way_points;
   for (const auto &point : sample_points) {
@@ -105,8 +107,8 @@ TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points){
   std::vector<bool> is_waypoint_considered(way_points.size(), true);
   std::vector<int> final_waypoint_idxs;
 
+  // populate metric matrix with distance from every touchpoint to every waypoint
   populate_metric_matrix(way_points);
-
   populate_touchables_table(way_points);
   // check for unique touch points
   check_for_unique_tp(
@@ -133,15 +135,19 @@ TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points){
   // sort the final waypoints and add waypoint Poses to the cluster
   std::sort(final_waypoint_idxs.begin(), final_waypoint_idxs.end());
   package_clusters(clusters, way_points, final_waypoint_idxs);
-  // for(int i=0; i < clusters.way_points.size(); i++){
-  //   auto wp_pose = clusters.way_points[i];
-  //   std::cout << "(" << wp_pose.position.x << ", " << wp_pose.position.y << ")" << std::endl;
-  //   for(int j=0; j < clusters.way_touch_association[i].size(); j++){
-  //     auto pose = clusters.touch_points[clusters.way_touch_association[i][j]];
-  //     std::cout << "(" << pose.position.x << ", " << pose.position.y << "),";
-  //   }
-  //   std::cout << std::endl;
-  // }
+
+  sort_clusters_touchpoints(clusters);
+
+  // PRINT-OUT TO VISUALIZE FINAL CLUSTER IN DESMOS
+  for(int i=0; i < clusters.way_points.size(); i++){
+    auto wp_pose = clusters.way_points[i];
+    std::cout << "(" << wp_pose.position.x << ", " << wp_pose.position.y << ")" << std::endl;
+    for(int j=0; j < clusters.way_touch_association[i].size(); j++){
+      auto pose = clusters.touch_points[clusters.way_touch_association[i][j]];
+      std::cout << "(" << pose.position.x << ", " << pose.position.y << "),";
+    }
+    std::cout << std::endl;
+  }
 
   return clusters;
 }
@@ -358,6 +364,13 @@ void TouchPlanner::package_clusters(
   }
 }
 
+void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
+  //TODO Write sorting algorithm for touchpoint shortest path
+  /* this function should update the way_touch_association in clusters
+    you will need the metric_matric inorder to get the waypoint to touchpoint
+    distances
+  */
+}
 
 double magnitude_calculator(Point2f v){
   return pow(v.x * v.x + v.y * v.y, 0.5);

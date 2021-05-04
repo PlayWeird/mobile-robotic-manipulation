@@ -90,4 +90,6 @@ private:
     const PoseList &way_points,
     const std::vector<int> &final_waypoint_idxs
   );
+
+  void sort_clusters_touchpoints(Clusters &clusters);
 };
