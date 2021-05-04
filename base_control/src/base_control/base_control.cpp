@@ -10,8 +10,8 @@ BaseControl::BaseControl(int argc, char **argv) :
 
 
 void BaseControl::init() {
-  goal_publisher_ = nh_->advertise<move_base_msgs::MoveBaseActionGoal>("/bvr_SIM/move_base/goal", 10);
-  goal_status_subscriber_ = nh_->subscribe("/bvr_SIM/move_base/status", 10, &BaseControl::moveBaseStateCallback, this);
+  goal_publisher_ = nh_->advertise<move_base_msgs::MoveBaseActionGoal>("/bvr_SIM/move_base/goal", 1);
+  goal_status_subscriber_ = nh_->subscribe("/bvr_SIM/move_base/status", 1, &BaseControl::moveBaseStateCallback, this);
   base_control_srv_ = nh_->advertiseService("base_control", &BaseControl::move, this);
   move_base_status_ = actionlib_msgs::GoalStatus::PENDING;
   latest_goal_id_ = std::to_string(ros::Time::now().toSec());
@@ -19,11 +19,11 @@ void BaseControl::init() {
 
 
 void BaseControl::moveBaseStateCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg) {
-  if (!msg->status_list.empty() && msg->status_list.begin()->goal_id.id == latest_goal_id_) {
-    move_base_status_ = msg->status_list.begin()->status;
-  } else {
-    move_base_status_ = actionlib_msgs::GoalStatus::PENDING;
-  }
+  for (const auto &goal_status : msg->status_list)
+    if (goal_status.goal_id.id == latest_goal_id_) {
+      move_base_status_ = goal_status.status;
+      return;
+    }
 }
 
 
@@ -34,11 +34,16 @@ bool BaseControl::move(base_control::BaseControlSrv::Request  &req,
   auto time = ros::Time::now();
   latest_goal_id_ = std::to_string(time.toSec());
 
+  // Wait for move_base_status_ to update
+  ros::Duration(0.2).sleep();
+
+  // Reset status.
+  move_base_status_ = actionlib_msgs::GoalStatus::PENDING;
+
   // Keep publishing until move-base acknowledges the request
   ros::Rate loop_rate_publishing(2);
-  bool publishing = true;
-  while(ros::ok() && publishing) {
-    publishing = publishGoal(req.pose);
+  while(ros::ok() && move_base_status_ == actionlib_msgs::GoalStatus::PENDING) {
+    publishGoal(req.pose);
     ros::spinOnce();
     loop_rate_publishing.sleep();
   }
@@ -66,7 +71,7 @@ bool BaseControl::move(base_control::BaseControlSrv::Request  &req,
     return true;
     break;
   default:
-    ROS_WARN("Unknown move-base error");
+    ROS_WARN_STREAM("Unknown move-base error: " << static_cast<int>(move_base_status_));
     res.status = UNKNOWN_ERROR;
     return false;
     break;
@@ -74,27 +79,20 @@ bool BaseControl::move(base_control::BaseControlSrv::Request  &req,
 }
 
 
-bool BaseControl::publishGoal(const geometry_msgs::Pose &target_pose) {
-  // Keep publishing goals until move-base status is not pending
-  if (!move_base_status_) {
-    const auto time_now = ros::Time::now();
+void BaseControl::publishGoal(const geometry_msgs::Pose &target_pose) {
+  const auto time_now = ros::Time::now();
 
-    move_base_msgs::MoveBaseActionGoal goal;
-    goal.goal.target_pose.pose.position = target_pose.position;
-    goal.goal.target_pose.pose.orientation = target_pose.orientation;
-    goal.goal.target_pose.header.stamp = time_now;
-    goal.goal.target_pose.header.frame_id = "map";
+  move_base_msgs::MoveBaseActionGoal goal;
+  goal.goal.target_pose.pose.position = target_pose.position;
+  goal.goal.target_pose.pose.orientation = target_pose.orientation;
+  goal.goal.target_pose.header.stamp = time_now;
+  goal.goal.target_pose.header.frame_id = "map";
 
-    goal.goal_id.stamp = time_now;
-    goal.goal_id.id = latest_goal_id_;
+  goal.goal_id.stamp = time_now;
+  goal.goal_id.id = latest_goal_id_;
 
-    goal.header.frame_id = "map";
-    goal.header.stamp = time_now;
+  goal.header.frame_id = "map";
+  goal.header.stamp = time_now;
 
-    goal_publisher_.publish(goal);
-
-    return true;
-  } else {
-    return false;
-  }
+  goal_publisher_.publish(goal);
 }

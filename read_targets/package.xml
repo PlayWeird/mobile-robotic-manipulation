@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>read_dae</name>
+  <name>read_targets</name>
   <version>0.0.0</version>
-  <description>The read_dae package</description>
+  <description>The read_targets package</description>
 
   <maintainer email="eduong@nevada.unr.edu">Eric Duong</maintainer>
   <maintainer email="mschmidtwolf@nevada.unr.edu">Melanie Schmidt-Wolf</maintainer>

@@ -8,10 +8,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   move_control
-  read_dae
+  read_targets
   roscpp
   std_msgs
   message_generation
+  touch_planner
 )
 
 
@@ -22,7 +23,7 @@ add_service_files(
 
 generate_messages(
    DEPENDENCIES
-   geometry_msgs   
+   geometry_msgs
    std_msgs
 )
 
@@ -31,10 +32,11 @@ catkin_package(
   CATKIN_DEPENDS
   geometry_msgs
   move_control
-  read_dae
+  read_targets
   roscpp
   std_msgs
   message_runtime
+  touch_planner
 )
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
