@@ -15,7 +15,7 @@ bool all_true(std::vector<bool> bools);
 
 PlannerMetric::PlannerMetric(float distance_threshold, float angle_threshold) {
   distance_threshold_ = distance_threshold;
-  angle_threshold_ = angle_threshold;
+  angle_threshold_ = (angle_threshold * M_PI) / 180;
 }
 
 
@@ -50,7 +50,7 @@ float PlannerMetric::cost(geometry_msgs::Pose way_point,
     tf2::fromMsg(way_point.orientation, way_point_orientation);
 
     double angle_cost = fabs(static_cast<double>(way_point_orientation.angle(touch_point_orientation)));
-    std::cout << angle_cost << std::endl;
+
     return angle_cost <= angle_threshold_ ? distance_cost : std::numeric_limits<float>::max();
 }
 
@@ -97,11 +97,11 @@ PoseList TouchPlanner::getWayPoints() {
   convexHull(mesh_points_2D, hull_points, true);
 
   // Pad convex hull
-  float pad_size = .2;
+  float pad_size = .3;
   padConvexHull(pad_size, hull_points);
 
   // Subdivide path
-  int num_subdivisions = 10;
+  int num_subdivisions = 150;
   auto sample_points = subdividePath(num_subdivisions, hull_points);
 
   PoseList way_points;
