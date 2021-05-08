@@ -1,23 +1,57 @@
 #include "touch_planner.h"
 #include "read_targets/read_targets.h"
+#include <eigen3/Eigen/Eigen>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
+#include <limits>
+#include <cmath>
+
+using Eigen::Vector3d;
 
 
 double magnitude_calculator(Point2f v);
 Point2f unit_vector_calculator(Point2f v);
 bool all_true(std::vector<bool> bools);
 
-PlannerMetric::PlannerMetric(float threshold) {
-  this->threshold = threshold;
+PlannerMetric::PlannerMetric(float distance_threshold, float angle_threshold) {
+  distance_threshold_ = distance_threshold;
+  angle_threshold_ = angle_threshold;
 }
 
 
-float PlannerMetric::distance(geometry_msgs::Pose way_point,
-                              geometry_msgs::Pose touch_point) {
+float PlannerMetric::cost(geometry_msgs::Pose way_point,
+                          geometry_msgs::Pose touch_point) {
+    // double dx = way_point.position.x - touch_point.position.x;
+    // double dy = way_point.position.y - touch_point.position.y;
+    // double dz = way_point.position.z - touch_point.position.z;
+    //
+    // return pow(dx*dx + dy*dy + dz*dz, 0.5);
+
+    // Compute distance cost
     double dx = way_point.position.x - touch_point.position.x;
     double dy = way_point.position.y - touch_point.position.y;
     double dz = way_point.position.z - touch_point.position.z;
+    double distance_cost = pow(dx*dx + dy*dy + dz*dz, 0.5);
 
-    return pow(dx*dx + dy*dy + dz*dz, 0.5);
+    // Compute angle cost
+    double way_touch_vec_x = touch_point.position.x - way_point.position.x;
+    double way_touch_vec_y = touch_point.position.y - way_point.position.y;
+
+    double angle = atan2(way_touch_vec_y, way_touch_vec_x);
+    if (way_touch_vec_x < 0.0)
+      angle += M_PI;
+    else if (way_touch_vec_y < 0.0)
+      angle += 2*M_PI;
+
+    tf2::Vector3 z_axis_tf2(0.0, 0.0, 1.0);
+    tf2::Quaternion touch_point_orientation(z_axis_tf2, angle);
+
+    tf2::Quaternion way_point_orientation;
+    tf2::fromMsg(way_point.orientation, way_point_orientation);
+
+    double angle_cost = fabs(static_cast<double>(way_point_orientation.angle(touch_point_orientation)));
+    std::cout << angle_cost << std::endl;
+    return angle_cost <= angle_threshold_ ? distance_cost : std::numeric_limits<float>::max();
 }
 
 
@@ -67,20 +101,45 @@ PoseList TouchPlanner::getWayPoints() {
   padConvexHull(pad_size, hull_points);
 
   // Subdivide path
-  int num_subdivisions = 150;
+  int num_subdivisions = 10;
   auto sample_points = subdividePath(num_subdivisions, hull_points);
 
   PoseList way_points;
-  for (const auto &point : sample_points) {
+  for (int i = 0; i < sample_points.size(); ++i) {
+    auto current_point = sample_points[i % sample_points.size()];
+    auto next_point = sample_points[(i + 1) % sample_points.size()];
+
     geometry_msgs::Pose way_point;
-    way_point.position.x = point.x;
-    way_point.position.y = point.y;
+    way_point.position.x = current_point.x;
+    way_point.position.y = current_point.y;
     way_point.position.z = 0.0;
-    // TODO compute orientation for waypoints
-    way_point.orientation.x = 0.0;
-    way_point.orientation.y = 0.0;
-    way_point.orientation.z = 0.0;
-    way_point.orientation.w = 1.0;
+
+    double vec_x = next_point.x - current_point.x;
+    double vec_y = next_point.y - current_point.y;
+    double vec_z = 0.0;
+
+    double z_axis_x = 0.0;
+    double z_axis_y = 0.0;
+    double z_axis_z = 1.0;
+
+    Vector3d vec;
+    vec << vec_x, vec_y, vec_z;
+
+    Vector3d z_axis;
+    z_axis << z_axis_x, z_axis_y, z_axis_z;
+
+    auto heading = vec.cross(z_axis);
+
+    double angle = atan2(heading(1), heading(0));
+    if (heading(0) < 0.0)
+      angle += M_PI;
+    else if (heading(1) < 0.0)
+      angle += 2*M_PI;
+
+    tf2::Vector3 z_axis_tf2(0.0, 0.0, 1.0);
+    tf2::Quaternion orientation(z_axis_tf2, angle);
+
+    way_point.orientation = tf2::toMsg(orientation);
 
     way_points.push_back(way_point);
   }
@@ -204,7 +263,7 @@ PointList2D TouchPlanner::subdividePath(int num_subdivisions,
 std::vector<int> TouchPlanner::get_waypoint_touchables(int waypoint_idx) {
     std::vector<int> touchables;
     for(int i=0; i < metric_matrix[0].size(); i++){
-      if(metric_matrix[waypoint_idx][i] <= metric.threshold){
+      if(metric_matrix[waypoint_idx][i] <= metric.getDistanceThreshold()){
         touchables.push_back(i);
       }
     }
@@ -217,7 +276,7 @@ void TouchPlanner::populate_metric_matrix(const PoseList &way_points){
   for(int i=0; i < way_points.size(); i++){
     std::vector<double> point_group;
     for(int j=0; j < touch_points.size(); j++){
-      point_group.push_back(metric.distance(way_points[i], touch_points[j]));
+      point_group.push_back(metric.cost(way_points[i], touch_points[j]));
     }
     metric_matrix.push_back(point_group);
   }

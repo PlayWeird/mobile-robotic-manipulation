@@ -6,7 +6,7 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include <algorithm>
-#include<unordered_map>
+#include <unordered_map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -26,13 +26,23 @@ struct Task {
 
 class PlannerMetric {
 public:
-  PlannerMetric(float threshold);
+  PlannerMetric(float distance_threshold, float angle_threshold);
   ~PlannerMetric(){};
 
-  virtual float distance(geometry_msgs::Pose way_point,
-                         geometry_msgs::Pose touch_point);
+  float cost(geometry_msgs::Pose way_point,
+             geometry_msgs::Pose touch_point);
 
-  float threshold;
+  float getDistanceThreshold() {
+    return distance_threshold_;
+  }
+
+  float getAngleThreshold() {
+    return angle_threshold_;
+  }
+
+protected:
+  float distance_threshold_;
+  float angle_threshold_;
 };
 
 class TouchPlanner {

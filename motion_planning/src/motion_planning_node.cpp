@@ -4,7 +4,7 @@
 int main(int argc, char** argv) {
   ros::init(argc, argv, "motion_planning");
 
-  PlannerMetric metric(1.1);
+  PlannerMetric metric(1.1, 10.0);
   MotionPlanning motion_planning{argc, argv, metric};
 
   if(motion_planning.run())
