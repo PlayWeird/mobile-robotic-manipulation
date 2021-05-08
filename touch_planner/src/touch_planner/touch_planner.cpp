@@ -428,8 +428,73 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
   /* this function should update the way_touch_association in clusters
     you will need the metric_matric inorder to get the waypoint to touchpoint
     distances
-  */
+  */ 
+  for(int index = 0; index < clusters.way_points.size(); index++){
+    int nums = clusters.way_touch_association[index].size();
+    int cost[nums+1][nums+1];
+    int traveled[nums+1];
+    int route[nums+1];
+    int counter = 0;
+    int min = INT_MAX;
+    int i, j;
+
+    for(int k =0; k< nums+1;k++){ traveled[k] = 0;}
+
+    cost[0][0]=0;
+    for(int k = 0; k < nums; k++){
+        cost[k+1][0] = metric.distance(clusters.way_points[index],clusters.touch_points[k]);
+        cost[0][k+1] = metric.distance(clusters.way_points[index],clusters.touch_points[k]);
+    }
+
+    for(int k= 0; k < nums; k++){
+      for(int p = 0; p < nums; p++){
+        cost[k+1][p+1]= metric.distance(clusters.touch_points[k],clusters.touch_points[p]);
+        cost[p+1][k+1]= metric.distance(clusters.touch_points[k],clusters.touch_points[p]);
+      }     
+    }
+
+    while (i < nums+1 && j < nums+1){
+      if (counter >= nums){break;}
+      // If this path is unvisited and if the cost is less, update the cost
+      if (j != i && (traveled[j] == 0)){
+        if (cost[i][j] < min){
+          min = cost[i][j];
+          route[counter] = j + 1;
+        }
+      }
+      j++;
+        
+      if(j == nums+1){
+        min = INT_MAX;
+        traveled[route[counter] - 1] = 1;
+        j = 0;
+        i = route[counter] - 1;
+        counter++;
+      }
+    }
+ 
+    // Update the ending city in array
+    // from city which was last visited
+    i = route[counter - 1] - 1;
+    for (j = 0; j < nums+1; j++){
+      if ((i != j) && cost[i][j] < min){
+        min = cost[i][j];
+        route[counter] = j + 1;
+      }
+    }
+
+  for(int k = 0; k< nums; k++){
+    clusters.way_touch_association[index][k] = route[k];
+  }
+  }
 }
+
+
+
+
+
+
+
 
 double magnitude_calculator(Point2f v){
   return pow(v.x * v.x + v.y * v.y, 0.5);
