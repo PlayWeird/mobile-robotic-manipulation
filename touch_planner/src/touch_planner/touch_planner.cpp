@@ -11,6 +11,7 @@ using Eigen::Vector3d;
 
 double magnitude_calculator(Point2f v);
 Point2f unit_vector_calculator(Point2f v);
+double distance_calculator(geometry_msgs::Pose pt1, geometry_msgs::Pose pt2);
 bool all_true(std::vector<bool> bools);
 
 PlannerMetric::PlannerMetric(float distance_threshold, float angle_threshold) {
@@ -21,11 +22,6 @@ PlannerMetric::PlannerMetric(float distance_threshold, float angle_threshold) {
 
 float PlannerMetric::cost(geometry_msgs::Pose way_point,
                           geometry_msgs::Pose touch_point) {
-    // double dx = way_point.position.x - touch_point.position.x;
-    // double dy = way_point.position.y - touch_point.position.y;
-    // double dz = way_point.position.z - touch_point.position.z;
-    //
-    // return pow(dx*dx + dy*dy + dz*dz, 0.5);
 
     // Compute distance cost
     double dx = way_point.position.x - touch_point.position.x;
@@ -50,8 +46,10 @@ float PlannerMetric::cost(geometry_msgs::Pose way_point,
     tf2::fromMsg(way_point.orientation, way_point_orientation);
 
     double angle_cost = fabs(static_cast<double>(way_point_orientation.angle(touch_point_orientation)));
+    bool is_feasible = angle_cost <= angle_threshold_;
+    is_feasible &= (signbit(way_point.position.y) == signbit(touch_point.position.y));
 
-    return angle_cost <= angle_threshold_ ? distance_cost : std::numeric_limits<float>::max();
+    return is_feasible ? distance_cost : std::numeric_limits<float>::max();
 }
 
 
@@ -67,12 +65,19 @@ void TouchPlanner::init() {
   clusters_.way_points = clusters.way_points;
   clusters_.touch_points = clusters.touch_points;
   clusters_.way_touch_association = clusters.way_touch_association;
+  task_cluster_idx = 0;
 }
 
 
 Task TouchPlanner::nextTask() {
-  // TODO: send a task to the motion planning
-  return Task();
+  Task task;
+  task.base_pose = clusters_.way_points[task_cluster_idx];
+  for(int idx=0; idx < clusters_.way_touch_association[task_cluster_idx].size()l idx++){
+    touch_idx = clusters_.way_touch_association[idx];
+    task.end_effector_poses.push_back(cluster_.touch_points[touch_idx]);
+  }
+  task_cluster_idx++;
+  return task;
 }
 
 
@@ -195,7 +200,8 @@ TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points){
   std::sort(final_waypoint_idxs.begin(), final_waypoint_idxs.end());
   package_clusters(clusters, way_points, final_waypoint_idxs);
 
-  sort_clusters_touchpoints(clusters);
+  // TODO: fix segfault in sorting cluster
+  // sort_clusters_touchpoints(clusters);
 
   // PRINT-OUT TO VISUALIZE FINAL CLUSTER IN DESMOS
   for(int i=0; i < clusters.way_points.size(); i++){
@@ -428,7 +434,7 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
   /* this function should update the way_touch_association in clusters
     you will need the metric_matric inorder to get the waypoint to touchpoint
     distances
-  */ 
+  */
   for(int index = 0; index < clusters.way_points.size(); index++){
     int nums = clusters.way_touch_association[index].size();
     int cost[nums+1][nums+1];
@@ -442,15 +448,15 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
 
     cost[0][0]=0;
     for(int k = 0; k < nums; k++){
-        cost[k+1][0] = metric.distance(clusters.way_points[index],clusters.touch_points[k]);
-        cost[0][k+1] = metric.distance(clusters.way_points[index],clusters.touch_points[k]);
+        cost[k+1][0] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
+        cost[0][k+1] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
     }
 
     for(int k= 0; k < nums; k++){
       for(int p = 0; p < nums; p++){
-        cost[k+1][p+1]= metric.distance(clusters.touch_points[k],clusters.touch_points[p]);
-        cost[p+1][k+1]= metric.distance(clusters.touch_points[k],clusters.touch_points[p]);
-      }     
+        cost[k+1][p+1] = distance_calculator(clusters.touch_points[k],clusters.touch_points[p]);
+        cost[p+1][k+1] = distance_calculator(clusters.touch_points[k],clusters.touch_points[p]);
+      }
     }
 
     while (i < nums+1 && j < nums+1){
@@ -463,7 +469,7 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
         }
       }
       j++;
-        
+
       if(j == nums+1){
         min = INT_MAX;
         traveled[route[counter] - 1] = 1;
@@ -472,7 +478,7 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
         counter++;
       }
     }
- 
+
     // Update the ending city in array
     // from city which was last visited
     i = route[counter - 1] - 1;
@@ -483,9 +489,9 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
       }
     }
 
-  for(int k = 0; k< nums; k++){
-    clusters.way_touch_association[index][k] = route[k];
-  }
+    for(int k = 0; k< nums; k++){
+      clusters.way_touch_association[index][k] = route[k];
+    }
   }
 }
 
@@ -498,6 +504,14 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
 
 double magnitude_calculator(Point2f v){
   return pow(v.x * v.x + v.y * v.y, 0.5);
+}
+
+double distance_calculator(geometry_msgs::Pose pt1, geometry_msgs::Pose pt2){
+  double dx = pt1.position.x - pt2.position.x;
+  double dy = pt1.position.y - pt2.position.y;
+  double dz = pt1.position.z - pt2.position.z;
+  return pow(dx * dx + dy * dy + dz * dz, 0.5);
+
 }
 
 
