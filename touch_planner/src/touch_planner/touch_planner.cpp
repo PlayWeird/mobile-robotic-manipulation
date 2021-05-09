@@ -72,12 +72,17 @@ void TouchPlanner::init() {
 Task TouchPlanner::nextTask() {
   Task task;
   task.base_pose = clusters_.way_points[task_cluster_idx];
-  for(int idx=0; idx < clusters_.way_touch_association[task_cluster_idx].size()l idx++){
-    touch_idx = clusters_.way_touch_association[idx];
-    task.end_effector_poses.push_back(cluster_.touch_points[touch_idx]);
+  for(int idx=0; idx < clusters_.way_touch_association[task_cluster_idx].size(); idx++){
+    int touch_idx = clusters_.way_touch_association[task_cluster_idx][idx];
+    task.end_effector_poses.push_back(clusters_.touch_points[touch_idx]);
   }
   task_cluster_idx++;
   return task;
+}
+
+bool TouchPlanner::has_next_task(){
+  int max_index = clusters_.way_touch_association[task_cluster_idx].size();
+  return task_cluster_idx < max_index;
 }
 
 
@@ -202,7 +207,7 @@ TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points){
 
   // TODO: fix segfault in sorting cluster
   // sort_clusters_touchpoints(clusters);
-
+  
   // PRINT-OUT TO VISUALIZE FINAL CLUSTER IN DESMOS
   for(int i=0; i < clusters.way_points.size(); i++){
     auto wp_pose = clusters.way_points[i];
@@ -496,15 +501,10 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
 }
 
 
-
-
-
-
-
-
 double magnitude_calculator(Point2f v){
   return pow(v.x * v.x + v.y * v.y, 0.5);
 }
+
 
 double distance_calculator(geometry_msgs::Pose pt1, geometry_msgs::Pose pt2){
   double dx = pt1.position.x - pt2.position.x;

@@ -56,6 +56,7 @@ public:
   std::vector<int> untouchables;
   Task nextTask();
   void reportStatus(); // Should have input variables
+  bool has_next_task();
 
 private:
   struct Clusters {
@@ -68,10 +69,11 @@ private:
   Clusters clusters_;
   PlannerMetric metric;
   std::vector<std::vector<int> > touchables_table;
+  int task_cluster_idx;
+
   void init();
 
   PoseList getWayPoints();
-
   Clusters getClusters();
   Clusters clustering(const PoseList &way_points);
   void padConvexHull(double pad, PointList2D &hull_points);
