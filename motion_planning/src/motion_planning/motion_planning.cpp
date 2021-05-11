@@ -103,7 +103,7 @@ bool MotionPlanning::run() {
 
   // TODO: call touch planner to get the next task.
   // TODO: report task status to touch planner to get the next task.
-  if(touch_planner_.has_next_task()){
+  while (touch_planner_.has_next_task()) {
     auto base_end_effector_poses1 = touch_planner_.nextTask();
 
     switch(move(base_end_effector_poses1)) {
@@ -121,9 +121,6 @@ bool MotionPlanning::run() {
     default:
       break;
     }
-  }else {
-    ROS_ERROR("No next_task found");
-    run_successful = false;
   }
   // auto base_end_effector_poses1 = getFakeTask();
 

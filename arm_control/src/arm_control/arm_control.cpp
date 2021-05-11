@@ -52,19 +52,20 @@ bool ArmControl::move(arm_control::ArmControlSrv::Request  &req,
                       arm_control::ArmControlSrv::Response &res) {
   ROS_INFO("Arm control request received");
 
-  for (const auto &target_end_effector_pose : req.poses) {
-    if(!moveEndEffector(target_end_effector_pose)) {
-      res.status = PLANNING_ERROR;
-      return true;
-    }
-  }
-
-  if (!resetToDefaultConfiguration()) {
-    res.status = CONFIGURATION_RESTORATION_ERROR;
-    return true;
-  }
-
   res.status = SUCCEEDED;
+
+  bool moved = false;
+  for (const auto &target_end_effector_pose : req.poses) {
+    if(!moveEndEffector(target_end_effector_pose))
+      res.status = PLANNING_ERROR;
+    else if (!moved)
+      moved = true;
+  }
+
+  if (moved)
+    if (!resetToDefaultConfiguration())
+      res.status = CONFIGURATION_RESTORATION_ERROR;
+
   return true;
 }
 
