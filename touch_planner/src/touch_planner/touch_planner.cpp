@@ -107,7 +107,7 @@ PoseList TouchPlanner::getWayPoints() {
   convexHull(mesh_points_2D, hull_points, true);
 
   // Pad convex hull
-  float pad_size = .3;
+  float pad_size = 1.0;
   padConvexHull(pad_size, hull_points);
 
   // Subdivide path

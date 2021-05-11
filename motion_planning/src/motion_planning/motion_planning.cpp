@@ -105,41 +105,60 @@ bool MotionPlanning::run() {
   // TODO: report task status to touch planner to get the next task.
   if(touch_planner_.has_next_task()){
     auto base_end_effector_poses1 = touch_planner_.nextTask();
+
+    switch(move(base_end_effector_poses1)) {
+    case SUCCEEDED:
+      ROS_INFO("Control SUCCEEDED");
+      break;
+    case SERVICE_CALL_ERROR:
+      ROS_ERROR("Failed to call move_control service");
+      run_successful = false;
+      break;
+    case SERVICE_EXECUTION_ERROR:
+      ROS_WARN("Control execution FAILED");
+      run_successful = false;
+      break;
+    default:
+      break;
+    }
+  }else {
+    ROS_ERROR("No next_task found");
+    run_successful = false;
   }
   // auto base_end_effector_poses1 = getFakeTask();
 
-  switch(move(base_end_effector_poses1)) {
-  case SUCCEEDED:
-    ROS_INFO("Control SUCCEEDED");
-    break;
-  case SERVICE_CALL_ERROR:
-    ROS_ERROR("Failed to call move_control service");
-    run_successful = false;
-    break;
-  case SERVICE_EXECUTION_ERROR:
-    ROS_WARN("Control execution FAILED");
-    run_successful = false;
-    break;
-  default:
-    break;
-  }
-
-  auto base_end_effector_poses2 = getFakeTask();
-  switch(move(base_end_effector_poses2)) {
-  case SUCCEEDED:
-    ROS_INFO("Control SUCCEEDED");
-    break;
-  case SERVICE_CALL_ERROR:
-    ROS_ERROR("Failed to call move_control service");
-    run_successful = false;
-    break;
-  case SERVICE_EXECUTION_ERROR:
-    ROS_WARN("Control execution FAILED");
-    run_successful = false;
-    break;
-  default:
-    break;
-  }
+  // switch(move(base_end_effector_poses1)) {
+  // case SUCCEEDED:
+  //   ROS_INFO("Control SUCCEEDED");
+  //   break;
+  // case SERVICE_CALL_ERROR:
+  //   ROS_ERROR("Failed to call move_control service");
+  //   run_successful = false;
+  //   break;
+  // case SERVICE_EXECUTION_ERROR:
+  //   ROS_WARN("Control execution FAILED");
+  //   run_successful = false;
+  //   break;
+  // default:
+  //   break;
+  // }
+  //
+  // auto base_end_effector_poses2 = getFakeTask();
+  // switch(move(base_end_effector_poses2)) {
+  // case SUCCEEDED:
+  //   ROS_INFO("Control SUCCEEDED");
+  //   break;
+  // case SERVICE_CALL_ERROR:
+  //   ROS_ERROR("Failed to call move_control service");
+  //   run_successful = false;
+  //   break;
+  // case SERVICE_EXECUTION_ERROR:
+  //   ROS_WARN("Control execution FAILED");
+  //   run_successful = false;
+  //   break;
+  // default:
+  //   break;
+  // }
 
   return run_successful;
 }
