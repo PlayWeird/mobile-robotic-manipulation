@@ -56,7 +56,7 @@ public:
   std::vector<int> untouchables;
   Task nextTask();
   void reportStatus(); // Should have input variables
-  bool has_next_task();
+  has_;
 
 private:
   struct Clusters {

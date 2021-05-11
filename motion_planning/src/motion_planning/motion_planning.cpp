@@ -103,8 +103,11 @@ bool MotionPlanning::run() {
 
   // TODO: call touch planner to get the next task.
   // TODO: report task status to touch planner to get the next task.
+  if(touch_planner_.has_next_task()){
+    auto base_end_effector_poses1 = touch_planner_.nextTask();
+  }
+  // auto base_end_effector_poses1 = getFakeTask();
 
-  auto base_end_effector_poses1 = getFakeTask();
   switch(move(base_end_effector_poses1)) {
   case SUCCEEDED:
     ROS_INFO("Control SUCCEEDED");

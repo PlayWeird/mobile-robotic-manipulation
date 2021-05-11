@@ -207,7 +207,7 @@ TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points){
 
   // TODO: fix segfault in sorting cluster
   // sort_clusters_touchpoints(clusters);
-  
+
   // PRINT-OUT TO VISUALIZE FINAL CLUSTER IN DESMOS
   for(int i=0; i < clusters.way_points.size(); i++){
     auto wp_pose = clusters.way_points[i];
