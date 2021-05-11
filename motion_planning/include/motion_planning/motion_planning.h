@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <touch_planner/touch_planner.h>
 #include "move_control/MoveControlSrv.h"
 #include <geometry_msgs/Pose.h>
 
@@ -6,15 +7,9 @@
 #include <memory>
 
 
-struct BaseEndEffectorPoses {
-  geometry_msgs::Pose base_pose;
-  std::vector<geometry_msgs::Pose> end_effector_poses;
-};
-
-
 class MotionPlanning {
 public:
-MotionPlanning(int argc, char **argv);
+MotionPlanning(int argc, char **argv, PlannerMetric metric);
 ~MotionPlanning() {
   nh_.reset();
 }
@@ -33,8 +28,10 @@ void init() {
   control_clt_ = nh_->serviceClient<move_control::MoveControlSrv>("move_control");
 }
 
-ServiceStatus move(const BaseEndEffectorPoses &base_end_effector_poses);
+ServiceStatus move(const Task &base_end_effector_poses);
 
 std::unique_ptr<ros::NodeHandle> nh_;
 ros::ServiceClient control_clt_;
+
+TouchPlanner touch_planner_;
 };

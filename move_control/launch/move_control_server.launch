@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find base_control)/launch/base_control_server.launch"/>
+  <include file="$(find arm_control)/launch/arm_control.launch"/>
+  
+  <node name="move_control" pkg="move_control" type="move_control_node" output="screen"/>
+</launch>

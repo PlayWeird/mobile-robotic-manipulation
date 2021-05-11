@@ -3,8 +3,8 @@
 #include <geometry_msgs/Pose.h>
 
 
-MotionPlanning::MotionPlanning(int argc, char **argv) :
-  nh_(new ros::NodeHandle()){
+MotionPlanning::MotionPlanning(int argc, char **argv, PlannerMetric metric) :
+  nh_(new ros::NodeHandle()), touch_planner_(metric) {
   init();
   ROS_INFO("Initalized MotionPlanning");
 }
@@ -55,13 +55,13 @@ std::vector<geometry_msgs::Pose> makeEndEffectorPoses(const geometry_msgs::Pose 
 }
 
 
-BaseEndEffectorPoses getFakeBaseEndEffectorPoses() {
+Task getFakeTask() {
   auto base_pose = makeBasePose();
-  return BaseEndEffectorPoses{.base_pose = base_pose, .end_effector_poses = makeEndEffectorPoses(base_pose)};
+  return Task{.base_pose = base_pose, .end_effector_poses = makeEndEffectorPoses(base_pose)};
 }
 
 
-BaseEndEffectorPoses get_69_73_poses() {
+Task get_69_73_poses() {
   geometry_msgs::Pose pose_73;
   pose_73.position.x = 2.667;
   pose_73.position.y = -0.472;
@@ -93,7 +93,7 @@ BaseEndEffectorPoses get_69_73_poses() {
   base_pose.orientation.z = 0.0;
   base_pose.orientation.w = 1.0;
 
-  return BaseEndEffectorPoses{.base_pose = base_pose, .end_effector_poses = ee_poses};
+  return Task{.base_pose = base_pose, .end_effector_poses = ee_poses};
 }
 /* ---------Experiment ends here--------- */
 
@@ -101,39 +101,64 @@ BaseEndEffectorPoses get_69_73_poses() {
 bool MotionPlanning::run() {
   bool run_successful = true;
 
-  auto base_end_effector_poses1 = getFakeBaseEndEffectorPoses();
-  switch(move(base_end_effector_poses1)) {
-  case SUCCEEDED:
-    ROS_INFO("Control SUCCEEDED");
-    break;
-  case SERVICE_CALL_ERROR:
-    ROS_ERROR("Failed to call move_control service");
-    run_successful = false;
-    break;
-  case SERVICE_EXECUTION_ERROR:
-    ROS_WARN("Control execution FAILED");
-    run_successful = false;
-    break;
-  default:
-    break;
-  }
+  // TODO: call touch planner to get the next task.
+  // TODO: report task status to touch planner to get the next task.
+  if(touch_planner_.has_next_task()){
+    auto base_end_effector_poses1 = touch_planner_.nextTask();
 
-  auto base_end_effector_poses2 = getFakeBaseEndEffectorPoses();
-  switch(move(base_end_effector_poses2)) {
-  case SUCCEEDED:
-    ROS_INFO("Control SUCCEEDED");
-    break;
-  case SERVICE_CALL_ERROR:
-    ROS_ERROR("Failed to call move_control service");
+    switch(move(base_end_effector_poses1)) {
+    case SUCCEEDED:
+      ROS_INFO("Control SUCCEEDED");
+      break;
+    case SERVICE_CALL_ERROR:
+      ROS_ERROR("Failed to call move_control service");
+      run_successful = false;
+      break;
+    case SERVICE_EXECUTION_ERROR:
+      ROS_WARN("Control execution FAILED");
+      run_successful = false;
+      break;
+    default:
+      break;
+    }
+  }else {
+    ROS_ERROR("No next_task found");
     run_successful = false;
-    break;
-  case SERVICE_EXECUTION_ERROR:
-    ROS_WARN("Control execution FAILED");
-    run_successful = false;
-    break;
-  default:
-    break;
   }
+  // auto base_end_effector_poses1 = getFakeTask();
+
+  // switch(move(base_end_effector_poses1)) {
+  // case SUCCEEDED:
+  //   ROS_INFO("Control SUCCEEDED");
+  //   break;
+  // case SERVICE_CALL_ERROR:
+  //   ROS_ERROR("Failed to call move_control service");
+  //   run_successful = false;
+  //   break;
+  // case SERVICE_EXECUTION_ERROR:
+  //   ROS_WARN("Control execution FAILED");
+  //   run_successful = false;
+  //   break;
+  // default:
+  //   break;
+  // }
+  //
+  // auto base_end_effector_poses2 = getFakeTask();
+  // switch(move(base_end_effector_poses2)) {
+  // case SUCCEEDED:
+  //   ROS_INFO("Control SUCCEEDED");
+  //   break;
+  // case SERVICE_CALL_ERROR:
+  //   ROS_ERROR("Failed to call move_control service");
+  //   run_successful = false;
+  //   break;
+  // case SERVICE_EXECUTION_ERROR:
+  //   ROS_WARN("Control execution FAILED");
+  //   run_successful = false;
+  //   break;
+  // default:
+  //   break;
+  // }
 
   return run_successful;
 }
@@ -144,7 +169,7 @@ bool MotionPlanning::run() {
 // Return  0: control execution successful.
 // Return -1: service call failed.
 // Return -2: control execution failed.
-MotionPlanning::ServiceStatus MotionPlanning::move(const BaseEndEffectorPoses &base_end_effector_poses) {
+MotionPlanning::ServiceStatus MotionPlanning::move(const Task &base_end_effector_poses) {
   // Prepare service call message
   move_control::MoveControlSrv move_control_srv;
   move_control_srv.request.base_pose = base_end_effector_poses.base_pose;
