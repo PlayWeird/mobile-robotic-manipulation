@@ -57,6 +57,8 @@ public:
   Task nextTask();
   void reportStatus(); // Should have input variables
   bool has_next_task();
+  bool isVisited(bool visited[], const int& N);
+  void TSP(const int& N, int **cost, std::vector<int> &path);
 
 private:
   struct Clusters {

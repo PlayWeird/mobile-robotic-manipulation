@@ -2,9 +2,9 @@
 #include "read_targets/read_targets.h"
 #include <eigen3/Eigen/Eigen>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <vector>
+#include <limits.h>
 
-#include <limits>
-#include <cmath>
 
 using Eigen::Vector3d;
 
@@ -436,6 +436,63 @@ void TouchPlanner::package_clusters(
   }
 }
 
+bool TouchPlanner::isVisited(bool visited[], const int& N){
+    for(int i = 1 ; i<N ;i++){
+        if(visited[i] == false){
+            return false;
+        }
+    }
+    return true;
+}
+
+
+void TouchPlanner::TSP(const int& N, int **cost, std::vector<int> &path){   
+   
+    static const int M = 1 << (N-1);
+    int dp[N][M] ;
+    for(int i = 0 ; i < N ;i++){
+        dp[i][0] = cost[i][0];
+    }
+    for(int j = 1 ; j < M ;j++){
+        for(int i = 0 ; i < N ;i++ ){
+            dp[i][j] = INT_MAX;
+            if( ((j >> (i-1)) & 1) == 1){
+                continue;
+            }
+            for(int k = 1 ; k < N ; k++){
+                if( ((j >> (k-1)) & 1) == 0){
+                    continue;
+                }
+                if( dp[i][j] > cost[i][k] + dp[k][j^(1<<(k-1))]){
+                    dp[i][j] = cost[i][k] + dp[k][j^(1<<(k-1))];
+                }
+            }
+        }
+    }
+
+    bool visited[N] = {false};
+    int pioneer = 0 ,min = INT_MAX, S = M - 1,temp ;
+    path.push_back(0);
+ 
+    while(!isVisited(visited, N)){
+        for(int i=1; i<N;i++){
+            if(visited[i] == false && (S&(1<<(i-1))) != 0){
+                if(min > cost[i][pioneer] + dp[i][(S^(1<<(i-1)))]){
+                    min = cost[i][pioneer] + dp[i][(S^(1<<(i-1)))] ;
+                    temp = i;
+                }
+            }
+        }
+        pioneer = temp;
+        path.push_back(pioneer);
+        visited[pioneer] = true;
+        S = S ^ (1<<(pioneer - 1));
+        min = INT_MAX;
+    }
+}
+
+
+
 void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
   //TODO Write sorting algorithm for touchpoint shortest path
   /* this function should update the way_touch_association in clusters
@@ -444,60 +501,31 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
    */
   for(int index = 0; index < clusters.way_points.size(); index++) {
     int nums = clusters.way_touch_association[index].size();
-    int cost[nums+1][nums+1];
-    int traveled[nums+1];
-    int route[nums+1];
-    int counter = 0;
-    int min = INT_MAX;
-    int i, j;
+    int **cost;
+    std::vector<int> path;
 
-    for(int k =0; k< nums+1; k++) { traveled[k] = 0;}
+    cost = new int *[nums+1];
+    for(int i = 0; i < nums+1; i++)
+        cost[i] = new int[nums+1];
 
     cost[0][0]=0;
-    for(int k = 0; k < nums; k++) {
-      cost[k+1][0] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
-      cost[0][k+1] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
+    for(int k = 1; k < nums+1; k++) {
+      cost[k][0] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
+      cost[0][k] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
     }
 
-    for(int k= 0; k < nums; k++) {
-      for(int p = 0; p < nums; p++) {
-        cost[k+1][p+1] = distance_calculator(clusters.touch_points[k],clusters.touch_points[p]);
-        cost[p+1][k+1] = distance_calculator(clusters.touch_points[k],clusters.touch_points[p]);
+    for(int k= 1; k < nums+1; k++) {
+      for(int p = 1; p < nums+1; p++) {
+        cost[k][p] = distance_calculator(clusters.touch_points[k],clusters.touch_points[p]);
+        cost[p][k] = distance_calculator(clusters.touch_points[k],clusters.touch_points[p]);
       }
     }
-
-    while (i < nums+1 && j < nums+1) {
-      if (counter >= nums) {break;}
-      // If this path is unvisited and if the cost is less, update the cost
-      if (j != i && (traveled[j] == 0)) {
-        if (cost[i][j] < min) {
-          min = cost[i][j];
-          route[counter] = j + 1;
-        }
-      }
-      j++;
-
-      if(j == nums+1) {
-        min = INT_MAX;
-        traveled[route[counter] - 1] = 1;
-        j = 0;
-        i = route[counter] - 1;
-        counter++;
-      }
-    }
-
-    // Update the ending city in array
-    // from city which was last visited
-    i = route[counter - 1] - 1;
-    for (j = 0; j < nums+1; j++) {
-      if ((i != j) && cost[i][j] < min) {
-        min = cost[i][j];
-        route[counter] = j + 1;
-      }
-    }
-
+    
+    int N = nums+1;
+    TSP(N, cost, path);
+    
     for(int k = 0; k< nums; k++) {
-      clusters.way_touch_association[index][k] = route[k];
+      clusters.way_touch_association[index][k] = path[k];
     }
   }
 }
