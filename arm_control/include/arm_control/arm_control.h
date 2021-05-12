@@ -26,6 +26,8 @@ enum ServiceStatus {
 
 void init(const std::string &planning_group, const std::string &robot_namespace);
 
+void setCurrentState();
+
 // Move end effector to a target pose in planning frame
 bool moveEndEffector(const geometry_msgs::Pose &target_pose);
 
@@ -37,6 +39,7 @@ std::unique_ptr<ros::NodeHandle> pnh_;
 ros::ServiceServer arm_control_srv_;
 
 std::unique_ptr<MoveGroupInterface> move_group_;
+const robot_state::JointModelGroup* joint_model_group_;
 
 std::string planning_frame_;
 std::string end_effector_frame_;
