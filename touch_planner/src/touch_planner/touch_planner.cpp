@@ -8,6 +8,8 @@
 
 using Eigen::Vector3d;
 
+constexpr float PADDING_SIZE = 0.9;
+
 
 double magnitude_calculator(Point2f v);
 Point2f unit_vector_calculator(Point2f v);
@@ -107,7 +109,7 @@ PoseList TouchPlanner::getWayPoints() {
   convexHull(mesh_points_2D, hull_points, true);
 
   // Pad convex hull
-  float pad_size = 1.15;
+  float pad_size = PADDING_SIZE;
   padConvexHull(pad_size, hull_points);
 
   // Subdivide path
