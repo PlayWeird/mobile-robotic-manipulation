@@ -10,7 +10,11 @@
 using namespace std;
 
 using Eigen::Vector3d;
+using Eigen::Matrix3d;
+using Eigen::Matrix4d;
 using Eigen::Quaterniond;
+
+constexpr double END_EFFECTOR_OFFSET = -0.1;
 
 
 PoseVector read_targets(const std::string &file_path, const std::string &file_path2) {
@@ -58,7 +62,7 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
     ++count;
   }
 
-  file_coord.close(); 
+  file_coord.close();
 
   // read orientation of normals
   ifstream file_orientation;
@@ -89,20 +93,15 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
       }
       ++j;
     }
-  ++count;
+    ++count;
   }
 
-  file_orientation.close(); 
+  file_orientation.close();
 
   pose_vector.resize(count-1);
 
   // assigning data to pose vector
   for(int i = 0; i < count-1; ++i) {
-
-  	pose_vector[i].position.x = x_values[i];
-  	pose_vector[i].position.y = y_values[i];
-  	pose_vector[i].position.z = z_values[i];
-
     // calculate quaternions from two vectors
     // finds rotation that maps x-axis vector to normal
     Vector3d normal;
@@ -111,11 +110,37 @@ PoseVector read_targets(const std::string &file_path, const std::string &file_pa
     axis_vec << -1.0, 0.0, 0.0;
     Quaterniond rotation_quaternion = Quaterniond::FromTwoVectors(axis_vec, normal);
 
-    pose_vector[i].orientation.x = rotation_quaternion.x();
-    pose_vector[i].orientation.y = rotation_quaternion.y();
-    pose_vector[i].orientation.z = rotation_quaternion.z();
-    pose_vector[i].orientation.w = rotation_quaternion.w();
+    // Offset the target frames along its x axis.
+    // Get rotation matrix from quaternion
+    Matrix3d R_matrix = rotation_quaternion.toRotationMatrix();
+    // Get translation vector from position
+    Vector3d t_vector;
+    t_vector << x_values[i], y_values[i], z_values[i];
 
+    // Construct transformation matrix from world frame to target end effector frame
+    Matrix4d T_world_ee;
+    T_world_ee.setIdentity();
+    T_world_ee.block<3,3>(0,0) = R_matrix;
+    T_world_ee.block<3,1>(0,3) = t_vector;
+
+    // Construct offset matrix from target end effector to offsetted end effector frame
+    Matrix4d T_ee_eeoffset;
+    T_ee_eeoffset.setIdentity();
+    T_ee_eeoffset(0,3) = END_EFFECTOR_OFFSET;
+
+    // Compute transformation from world to offsetted end effector frame
+    Matrix4d T_world_eeoffset = T_world_ee * T_ee_eeoffset;
+
+    // Fill in translation and rotation information.
+    pose_vector[i].position.x = T_world_eeoffset(0, 3);
+    pose_vector[i].position.y = T_world_eeoffset(1, 3);
+    pose_vector[i].position.z = T_world_eeoffset(2, 3);
+
+    Quaterniond rotation_offsetted(T_world_eeoffset.block<3,3>(0, 0));
+    pose_vector[i].orientation.x = rotation_offsetted.x();
+    pose_vector[i].orientation.y = rotation_offsetted.y();
+    pose_vector[i].orientation.z = rotation_offsetted.z();
+    pose_vector[i].orientation.w = rotation_offsetted.w();
   }
 
   return pose_vector;
