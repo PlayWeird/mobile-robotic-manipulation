@@ -3,9 +3,8 @@
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "arm_control");
-  // Need at least 2 spinners
-  // 6 spinners to make things fast, hopefully
-  ros::AsyncSpinner spinner(6);
+  // Need at least 2 spinner threads
+  ros::AsyncSpinner spinner(12);
   spinner.start();
 
   ArmControl arm_control{argc, argv};
