@@ -12,6 +12,18 @@ A project for CS 491 Autonomous Mobile Manipulation class at the University of N
 
 Setup a workspace with the instructions at [Autonomous Movile Manipulation GitHub repository](https://github.com/robowork/autonomous_mobile_manipulation/tree/project).
 
+Edit the file `autonomous_movile_manipulation/robowork_moveit_config/launch/trajectory_execution.launch.xml` on line 16 from
+
+```xml
+<param name="trajectory_execution/allowed_start_tolerance" value="0.01"/>
+```
+
+to 
+
+```xml
+<param name="trajectory_execution/allowed_start_tolerance" value="0.00"/>
+```
+
 Clone this repository in `~/your_catkin_ws/src`.
 
 Your directory tree should look like this:
@@ -55,7 +67,7 @@ ROS_NAMESPACE="bvr_SIM" roslaunch robowork_moveit_config robowork_moveit_plannin
 
 Wait until terminal 2 finishes setting up Moveit (after about 3 seconds), in terminal 3, run:
 ```
-ROS_NAMESPACE="bvr_SIM" roslaunch move_control move_control.launch
+ROS_NAMESPACE="bvr_SIM" roslaunch move_control move_control_server.launch
 ```
 
 Wait until terminal 3 finishes setting up control services (after about 5 seconds), in terminal 4, run:
