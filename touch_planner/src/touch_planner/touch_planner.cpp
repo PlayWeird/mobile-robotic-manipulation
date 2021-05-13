@@ -9,6 +9,7 @@
 using Eigen::Vector3d;
 
 constexpr float PADDING_SIZE = 0.9;
+constexpr int PATH_SUBDIVISIONS = 150;
 
 
 double magnitude_calculator(Point2f v);
@@ -116,7 +117,7 @@ PoseList TouchPlanner::getWayPoints() {
   padConvexHull(pad_size, hull_points);
 
   // Subdivide path
-  int num_subdivisions = 150;
+  int num_subdivisions = PATH_SUBDIVISIONS;
   auto sample_points = subdividePath(num_subdivisions, hull_points);
 
   PoseList way_points;
@@ -151,8 +152,8 @@ PoseList TouchPlanner::getWayPoints() {
     else if (heading(1) < 0.0)
       angle += 2*M_PI;
 
-    float degrees = angle * 180.0 / M_PI;
-    ROS_INFO(std::to_string(degrees).c_str());
+    // float degrees = angle * 180.0 / M_PI;
+    // ROS_INFO(std::to_string(degrees).c_str());
 
     tf2::Vector3 z_axis_tf2(0.0, 0.0, 1.0);
     tf2::Quaternion orientation(z_axis_tf2, angle);
