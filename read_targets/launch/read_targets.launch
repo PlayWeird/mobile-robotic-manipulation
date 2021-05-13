@@ -1,6 +1,6 @@
 <launch>
-  <arg name="file_path" default="/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_center_position.txt"/>
-  <arg name="file_path2" default="/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_normals.txt"/>
+  <arg name="file_path" default="$(find read_targets)/preprocessing/Triangle_center_position.txt"/>
+  <arg name="file_path2" default="$(find read_targets)/preprocessing/Triangle_normals.txt"/>
 
   <node name="read_targets" pkg="read_targets" type="read_targets_node" output="screen">
     <param name="file_path" value="$(arg file_path)"/>
