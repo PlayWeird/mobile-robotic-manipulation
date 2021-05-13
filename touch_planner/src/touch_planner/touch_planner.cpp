@@ -4,6 +4,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <vector>
 #include <limits.h>
+#include <ros/package.h>
 
 
 using Eigen::Vector3d;
@@ -168,9 +169,10 @@ PoseList TouchPlanner::getWayPoints() {
 
 
 TouchPlanner::Clusters TouchPlanner::getClusters() {
+  std::string pkg_path = ros::package::getPath("read_targets");
   touch_points = read_targets(
-    "/home/gaetano/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_center_position.txt",
-    "/home/gaetano/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_normals.txt"
+    pkg_path + "/preprocessing/Triangle_center_position.txt",
+    pkg_path + "/preprocessing/Triangle_normals.txt"
     );
   const auto way_points = getWayPoints();
 

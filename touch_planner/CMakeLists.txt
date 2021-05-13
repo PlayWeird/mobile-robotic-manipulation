@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   tf2_ros
   read_targets
+  roslib
 )
 
 find_package(TinyXML REQUIRED)
@@ -20,7 +21,7 @@ find_package(OpenCV REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES touch_planner
-  CATKIN_DEPENDS cmake_modules roscpp geometry_msgs tf2_ros read_targets
+  CATKIN_DEPENDS cmake_modules roscpp geometry_msgs tf2_ros read_targets roslib
 )
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
