@@ -12,6 +12,7 @@
 using Eigen::Vector3d;
 
 constexpr float PADDING_SIZE = 0.9;
+constexpr int PATH_SUBDIVISIONS = 150;
 
 
 double magnitude_calculator(Point2f v);
@@ -115,7 +116,7 @@ PoseList TouchPlanner::getWayPoints() {
   padConvexHull(pad_size, hull_points);
 
   // Subdivide path
-  int num_subdivisions = 150;
+  int num_subdivisions = PATH_SUBDIVISIONS;
   auto sample_points = subdividePath(num_subdivisions, hull_points);
 
   PoseList way_points;
