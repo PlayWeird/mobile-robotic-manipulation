@@ -23,33 +23,33 @@ PlannerMetric::PlannerMetric(float distance_threshold, float angle_threshold) {
 float PlannerMetric::cost(geometry_msgs::Pose way_point,
                           geometry_msgs::Pose touch_point) {
 
-  // Compute distance cost
-  double dx = way_point.position.x - touch_point.position.x;
-  double dy = way_point.position.y - touch_point.position.y;
-  double dz = way_point.position.z - touch_point.position.z;
-  double distance_cost = pow(dx*dx + dy*dy + dz*dz, 0.5);
+    // Compute distance cost
+    double dx = way_point.position.x - touch_point.position.x;
+    double dy = way_point.position.y - touch_point.position.y;
+    double dz = way_point.position.z - touch_point.position.z;
+    double distance_cost = pow(dx*dx + dy*dy + dz*dz, 0.5);
 
-  // Compute angle cost
-  double way_touch_vec_x = touch_point.position.x - way_point.position.x;
-  double way_touch_vec_y = touch_point.position.y - way_point.position.y;
+    // Compute angle cost
+    double way_touch_vec_x = touch_point.position.x - way_point.position.x;
+    double way_touch_vec_y = touch_point.position.y - way_point.position.y;
 
-  double angle = atan2(way_touch_vec_y, way_touch_vec_x);
-  if (way_touch_vec_x < 0.0)
-    angle += M_PI;
-  else if (way_touch_vec_y < 0.0)
-    angle += 2*M_PI;
+    double angle = atan2(way_touch_vec_y, way_touch_vec_x);
+    if (way_touch_vec_x < 0.0)
+      angle += M_PI;
+    else if (way_touch_vec_y < 0.0)
+      angle += 2*M_PI;
 
-  tf2::Vector3 z_axis_tf2(0.0, 0.0, 1.0);
-  tf2::Quaternion touch_point_orientation(z_axis_tf2, angle);
+    tf2::Vector3 z_axis_tf2(0.0, 0.0, 1.0);
+    tf2::Quaternion touch_point_orientation(z_axis_tf2, angle);
 
-  tf2::Quaternion way_point_orientation;
-  tf2::fromMsg(way_point.orientation, way_point_orientation);
+    tf2::Quaternion way_point_orientation;
+    tf2::fromMsg(way_point.orientation, way_point_orientation);
 
-  double angle_cost = fabs(static_cast<double>(way_point_orientation.angle(touch_point_orientation)));
-  bool is_feasible = angle_cost <= angle_threshold_;
-  is_feasible &= (signbit(way_point.position.y) == signbit(touch_point.position.y));
+    double angle_cost = fabs(static_cast<double>(way_point_orientation.angle(touch_point_orientation)));
+    bool is_feasible = angle_cost <= angle_threshold_;
+    is_feasible &= (signbit(way_point.position.y) == signbit(touch_point.position.y));
 
-  return is_feasible ? distance_cost : std::numeric_limits<float>::max();
+    return is_feasible ? distance_cost : std::numeric_limits<float>::max();
 }
 
 
@@ -72,7 +72,7 @@ void TouchPlanner::init() {
 Task TouchPlanner::nextTask() {
   Task task;
   task.base_pose = clusters_.way_points[task_cluster_idx];
-  for(int idx=0; idx < clusters_.way_touch_association[task_cluster_idx].size(); idx++) {
+  for(int idx=0; idx < clusters_.way_touch_association[task_cluster_idx].size(); idx++){
     int touch_idx = clusters_.way_touch_association[task_cluster_idx][idx];
     task.end_effector_poses.push_back(clusters_.touch_points[touch_idx]);
   }
@@ -107,7 +107,7 @@ PoseList TouchPlanner::getWayPoints() {
   convexHull(mesh_points_2D, hull_points, true);
 
   // Pad convex hull
-  float pad_size = 1.15;
+  float pad_size = 1.2;
   padConvexHull(pad_size, hull_points);
 
   // Subdivide path
@@ -160,8 +160,8 @@ PoseList TouchPlanner::getWayPoints() {
 
 TouchPlanner::Clusters TouchPlanner::getClusters() {
   touch_points = read_targets(
-    "/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_center_position.txt",
-    "/home/eric/Documents/ROS_Projects/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_normals.txt"
+    "/home/gaetano/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_center_position.txt",
+    "/home/gaetano/autonomous_mobile_manipulation_ws/src/mobile-robotic-manipulation/read_targets/preprocessing/Triangle_normals.txt"
     );
   const auto way_points = getWayPoints();
 
@@ -184,9 +184,9 @@ TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points){
     is_touchpoint_covered,
     is_waypoint_considered,
     final_waypoint_idxs
-    );
+  );
 
-  while(ros::ok() && !all_true(is_touchpoint_covered)) {
+  while(ros::ok() && !all_true(is_touchpoint_covered)){
     // remove redundant waypoints
     remove_redundant_wp(way_points, is_waypoint_considered, is_touchpoint_covered);
 
@@ -198,7 +198,7 @@ TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points){
       is_touchpoint_covered,
       is_waypoint_considered,
       final_waypoint_idxs
-      );
+    );
   }
 
   // sort the final waypoints and add waypoint Poses to the cluster
@@ -209,10 +209,10 @@ TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points){
   // sort_clusters_touchpoints(clusters);
 
   // PRINT-OUT TO VISUALIZE FINAL CLUSTER IN DESMOS
-  // for(int i=0; i < clusters.way_points.size(); i++) {
+  // for(int i=0; i < clusters.way_points.size(); i++){
   //   auto wp_pose = clusters.way_points[i];
   //   std::cout << "(" << wp_pose.position.x << ", " << wp_pose.position.y << ")" << std::endl;
-  //   for(int j=0; j < clusters.way_touch_association[i].size(); j++) {
+  //   for(int j=0; j < clusters.way_touch_association[i].size(); j++){
   //     auto pose = clusters.touch_points[clusters.way_touch_association[i][j]];
   //     std::cout << "(" << pose.position.x << ", " << pose.position.y << "),";
   //   }
@@ -272,21 +272,21 @@ PointList2D TouchPlanner::subdividePath(int num_subdivisions,
 
 
 std::vector<int> TouchPlanner::get_waypoint_touchables(int waypoint_idx) {
-  std::vector<int> touchables;
-  for(int i=0; i < metric_matrix[0].size(); i++) {
-    if(metric_matrix[waypoint_idx][i] <= metric.getDistanceThreshold()) {
-      touchables.push_back(i);
+    std::vector<int> touchables;
+    for(int i=0; i < metric_matrix[0].size(); i++){
+      if(metric_matrix[waypoint_idx][i] <= metric.getDistanceThreshold()){
+        touchables.push_back(i);
+      }
     }
-  }
-  return touchables;
+    return touchables;
 }
 
 
 void TouchPlanner::populate_metric_matrix(const PoseList &way_points){
   metric_matrix.clear();
-  for(int i=0; i < way_points.size(); i++) {
+  for(int i=0; i < way_points.size(); i++){
     std::vector<double> point_group;
-    for(int j=0; j < touch_points.size(); j++) {
+    for(int j=0; j < touch_points.size(); j++){
       point_group.push_back(metric.cost(way_points[i], touch_points[j]));
     }
     metric_matrix.push_back(point_group);
@@ -297,7 +297,7 @@ void TouchPlanner::populate_metric_matrix(const PoseList &way_points){
 void TouchPlanner::populate_touchables_table(const PoseList &way_points){
   // touchables_table[i] is the indices of the touchpoints that way_points[i] can touch
   touchables_table.clear();
-  for(int wp_idx=0; wp_idx < way_points.size(); wp_idx++) {
+  for(int wp_idx=0; wp_idx < way_points.size(); wp_idx++){
     touchables_table.push_back(get_waypoint_touchables(wp_idx));
   }
 }
@@ -307,19 +307,19 @@ void TouchPlanner::remove_redundant_wp(
   const PoseList &way_points,
   std::vector<bool> &is_waypoint_considered,
   const std::vector<bool> &is_touchpoint_covered
-  ){
-  for(int wp_idx=0; wp_idx < way_points.size(); wp_idx++) {
-    if(is_waypoint_considered[wp_idx]) {
+){
+  for(int wp_idx=0; wp_idx < way_points.size(); wp_idx++){
+    if(is_waypoint_considered[wp_idx]){
       bool is_redundant = true;
       int size = touchables_table[wp_idx].size();
-      for(int table_idx=0; table_idx < size; table_idx++) {
+      for(int table_idx=0; table_idx < size; table_idx++){
         int tp_idx = touchables_table[wp_idx][table_idx];
-        if(!is_touchpoint_covered[tp_idx]) {
+        if(!is_touchpoint_covered[tp_idx]){
           is_redundant = false;
           break;
         }
       }
-      if(is_redundant) {
+      if(is_redundant){
         is_waypoint_considered[wp_idx] = false;
       }
     }
@@ -331,23 +331,23 @@ void TouchPlanner::check_for_unique_tp(
   std::vector<bool> &is_touchpoint_covered,
   std::vector<bool> &is_waypoint_considered,
   std::vector<int> &final_waypoint_idxs
-  ){
+){
   /*
-     Update touchpoints_covered and final_waypoint_idxs if we find a touch point
-     that can only be reached by a single waypoint
-   */
-  for(int tp_idx=0; tp_idx < is_touchpoint_covered.size(); tp_idx++) {
+  Update touchpoints_covered and final_waypoint_idxs if we find a touch point
+  that can only be reached by a single waypoint
+  */
+  for(int tp_idx=0; tp_idx < is_touchpoint_covered.size(); tp_idx++){
     // if current touchpoint is not covered check for unique waypoint
-    if(!is_touchpoint_covered[tp_idx]) {
+    if(!is_touchpoint_covered[tp_idx]){
       int times_touched = 0;
       int who_touched = -1;
-      for(int wp_idx=0; wp_idx < is_waypoint_considered.size(); wp_idx++) {
-        if(is_waypoint_considered[wp_idx]) {
+      for(int wp_idx=0; wp_idx < is_waypoint_considered.size(); wp_idx++){
+        if(is_waypoint_considered[wp_idx]){
           // if waypoint can touch the touchpoint then mark
           auto wp_touchables = touchables_table[wp_idx];
-          if(std::count(wp_touchables.begin(), wp_touchables.end(), tp_idx)) {
+          if(std::count(wp_touchables.begin(), wp_touchables.end(), tp_idx)){
             times_touched++;
-            if(times_touched > 1) {
+            if(times_touched > 1){
               break;
             }
             who_touched = wp_idx;
@@ -355,18 +355,18 @@ void TouchPlanner::check_for_unique_tp(
         }
       }
       // if no waypoint can touch this touchpoint: uh oh
-      if(times_touched == 0) {
+      if(times_touched == 0){
         std::cout << "ERROR: touchpoint " << tp_idx << ": not touchable!" << std::endl;
         untouchables.push_back(tp_idx);
         // ignoring unreachable touchpoint in subsequent passes.
         is_touchpoint_covered[tp_idx] = true;
       }
       // if touchpoint is only touched by one wp
-      else if(times_touched == 1) {
+      else if(times_touched == 1){
         // add wp idx to the final wp list
         final_waypoint_idxs.push_back(who_touched);
         // update touchpoints covered list
-        for(int touch_idx : touchables_table[who_touched]) {
+        for(int touch_idx : touchables_table[who_touched]){
           is_touchpoint_covered[touch_idx] = true;
         }
         // remove new final waypoint from considered list
@@ -380,16 +380,16 @@ void TouchPlanner::check_for_unique_tp(
 void TouchPlanner::remove_worst_wp(std::vector<bool> &is_waypoint_considered){
   float max_distance = 0.0;
   int max_index = -1;
-  for(int wp_idx=0; wp_idx < is_waypoint_considered.size(); wp_idx++) {
-    if(is_waypoint_considered[wp_idx]) {
+  for(int wp_idx=0; wp_idx < is_waypoint_considered.size(); wp_idx++){
+    if(is_waypoint_considered[wp_idx]){
       float distance_sum = 0.0;
       int size = touchables_table[wp_idx].size();
-      for(int table_idx=0; table_idx < size; table_idx++) {
+      for(int table_idx=0; table_idx < size; table_idx++){
         int tp_idx = touchables_table[wp_idx][table_idx];
         distance_sum += metric_matrix[wp_idx][tp_idx];
       }
       float average_distance = distance_sum / size;
-      if(average_distance > max_distance) {
+      if(average_distance > max_distance){
         max_distance = average_distance;
         max_index = wp_idx;
       }
@@ -403,11 +403,11 @@ void TouchPlanner::package_clusters(
   Clusters &clusters,
   const PoseList &way_points,
   const std::vector<int> &final_waypoint_idxs
-  ){
+){
   // mapping from idx in way_points to idx in Clusters.way_points
   std::unordered_map<int, int> idx_lookup;
   int cluster_wp_idx = 0;
-  for(int final_idx : final_waypoint_idxs) {
+  for(int final_idx : final_waypoint_idxs){
     clusters.way_points.push_back(way_points[final_idx]);
     idx_lookup[final_idx] = cluster_wp_idx;
     cluster_wp_idx++;
@@ -415,15 +415,15 @@ void TouchPlanner::package_clusters(
   }
 
   // sort touchpoints to connect to closest final waypoints
-  for(int tp_idx=0; tp_idx < touch_points.size(); tp_idx++) {
+  for(int tp_idx=0; tp_idx < touch_points.size(); tp_idx++){
     clusters.touch_points.push_back(touch_points[tp_idx]);
     auto it = std::find(untouchables.begin(), untouchables.end(), tp_idx);
-    if(it == untouchables.end()) {
+    if(it == untouchables.end()){
       float min_distance = 9999999.9;
       int min_wp_idx = -1;
-      for(int idx=0; idx < final_waypoint_idxs.size(); idx++) {
+      for(int idx=0; idx < final_waypoint_idxs.size(); idx++){
         int final_idx = final_waypoint_idxs[idx];
-        if(metric_matrix[final_idx][tp_idx] < min_distance) {
+        if(metric_matrix[final_idx][tp_idx] < min_distance){
           min_distance = metric_matrix[final_idx][tp_idx];
           min_wp_idx = final_idx;
         }
@@ -437,10 +437,10 @@ void TouchPlanner::package_clusters(
 void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
   //TODO Write sorting algorithm for touchpoint shortest path
   /* this function should update the way_touch_association in clusters
-     you will need the metric_matric inorder to get the waypoint to touchpoint
-     distances
-   */
-  for(int index = 0; index < clusters.way_points.size(); index++) {
+    you will need the metric_matric inorder to get the waypoint to touchpoint
+    distances
+  */
+  for(int index = 0; index < clusters.way_points.size(); index++){
     int nums = clusters.way_touch_association[index].size();
     int cost[nums+1][nums+1];
     int traveled[nums+1];
@@ -449,33 +449,33 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
     int min = INT_MAX;
     int i, j;
 
-    for(int k =0; k< nums+1; k++) { traveled[k] = 0;}
+    for(int k =0; k< nums+1;k++){ traveled[k] = 0;}
 
     cost[0][0]=0;
-    for(int k = 0; k < nums; k++) {
-      cost[k+1][0] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
-      cost[0][k+1] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
+    for(int k = 0; k < nums; k++){
+        cost[k+1][0] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
+        cost[0][k+1] = distance_calculator(clusters.way_points[index],clusters.touch_points[k]);
     }
 
-    for(int k= 0; k < nums; k++) {
-      for(int p = 0; p < nums; p++) {
+    for(int k= 0; k < nums; k++){
+      for(int p = 0; p < nums; p++){
         cost[k+1][p+1] = distance_calculator(clusters.touch_points[k],clusters.touch_points[p]);
         cost[p+1][k+1] = distance_calculator(clusters.touch_points[k],clusters.touch_points[p]);
       }
     }
 
-    while (i < nums+1 && j < nums+1) {
-      if (counter >= nums) {break;}
+    while (i < nums+1 && j < nums+1){
+      if (counter >= nums){break;}
       // If this path is unvisited and if the cost is less, update the cost
-      if (j != i && (traveled[j] == 0)) {
-        if (cost[i][j] < min) {
+      if (j != i && (traveled[j] == 0)){
+        if (cost[i][j] < min){
           min = cost[i][j];
           route[counter] = j + 1;
         }
       }
       j++;
 
-      if(j == nums+1) {
+      if(j == nums+1){
         min = INT_MAX;
         traveled[route[counter] - 1] = 1;
         j = 0;
@@ -487,14 +487,14 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
     // Update the ending city in array
     // from city which was last visited
     i = route[counter - 1] - 1;
-    for (j = 0; j < nums+1; j++) {
-      if ((i != j) && cost[i][j] < min) {
+    for (j = 0; j < nums+1; j++){
+      if ((i != j) && cost[i][j] < min){
         min = cost[i][j];
         route[counter] = j + 1;
       }
     }
 
-    for(int k = 0; k< nums; k++) {
+    for(int k = 0; k< nums; k++){
       clusters.way_touch_association[index][k] = route[k];
     }
   }
@@ -521,7 +521,5 @@ Point2f unit_vector_calculator(Point2f v){
 
 
 bool all_true(std::vector<bool> bools){
-  return std::all_of(bools.begin(), bools.end(), [](bool v) {
-    return v;
-  });
+  return std::all_of(bools.begin(), bools.end(), [](bool v) {return v;});
 }
