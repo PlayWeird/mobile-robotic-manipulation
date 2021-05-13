@@ -1,3 +1,3 @@
 <launch>
-  <node name="base_control_server" pkg="base_control" type="base_control_server.py" output="screen"/>
+  <node name="base_control_server" pkg="base_control" type="base_control_server.py" output="screen" respawn="true"/>
 </launch>
