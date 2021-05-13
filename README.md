@@ -77,4 +77,4 @@ ROS_NAMESPACE="bvr_SIM" rosrun motion_planning motion_planning_node
 
 ## Expected result
 
-The robot moves to a position, moves the arm twice, then moves to another position, moves the arm twice.
+The robot moves around the boat and tounch target points along the boat.
