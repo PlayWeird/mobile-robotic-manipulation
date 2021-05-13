@@ -5,8 +5,7 @@
 #include <string>
 #include <memory>
 
-constexpr double PLANNING_EXECUTION_PADDING_TIME = 3.0;
-constexpr int RETRIES = 3;
+constexpr int RETRIES = 2;
 
 
 ArmControl::ArmControl(int argc, char **argv) :
@@ -43,7 +42,7 @@ void ArmControl::init(const std::string &planning_group, const std::string &robo
   move_group_->setMaxAccelerationScalingFactor(1.0);
   move_group_->setPlanningTime(5.0);
   move_group_->setNumPlanningAttempts(100);
-  move_group_->setGoalTolerance(0.1);
+  move_group_->setGoalTolerance(0.05);
   move_group_->setPlannerId("RRTConnectkConfigDefault");
 
   bool state_monitor_started = move_group_->startStateMonitor();
@@ -87,20 +86,21 @@ void ArmControl::setCurrentState() {
 
 
 bool ArmControl::moveEndEffector() {
+  MoveGroupInterface::Plan plan;
+
   bool success = false;
 
+  setCurrentState();
+
+  success = (move_group_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+  ROS_INFO_STREAM("Arm planning " << (success ? "SUCCEEDED" : "FAILED"));
+
+  if (!success) return false;
+
+  // If there exists a such a plan, then execute the plan and move the gripper
+  success = false;
   for (int i = 0; i < RETRIES && !success; ++i) {
-    ros::Duration(PLANNING_EXECUTION_PADDING_TIME).sleep();
-
-    MoveGroupInterface::Plan plan;
-
-    setCurrentState();
-    success = (move_group_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-    // If there exists a such a plan, then execute the plan and move the gripper
-    if (success)
-      success = (move_group_->execute(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
+    success = (move_group_->execute(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     ROS_INFO_STREAM("Arm execution trial " << i + 1 << (success ? " SUCCEEDED" : " FAILED"));
   }
 
