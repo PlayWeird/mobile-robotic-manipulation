@@ -37,6 +37,7 @@ float PlannerMetric::cost(geometry_msgs::Pose way_point,
   double way_touch_vec_y = touch_point.position.y - way_point.position.y;
 
   double angle = atan2(way_touch_vec_y, way_touch_vec_x);
+
   if (way_touch_vec_x < 0.0)
     angle += M_PI;
   else if (way_touch_vec_y < 0.0)
@@ -73,12 +74,14 @@ void TouchPlanner::init() {
 
 
 Task TouchPlanner::nextTask() {
+
   Task task;
   task.base_pose = clusters_.way_points[task_cluster_idx];
   for(int idx=0; idx < clusters_.way_touch_association[task_cluster_idx].size(); idx++) {
     int touch_idx = clusters_.way_touch_association[task_cluster_idx][idx];
     task.end_effector_poses.push_back(clusters_.touch_points[touch_idx]);
   }
+  ROS_INFO(("Sending planning task: " + std::to_string(task_cluster_idx)).c_str());
   task_cluster_idx++;
   return task;
 }
@@ -148,6 +151,9 @@ PoseList TouchPlanner::getWayPoints() {
       angle += M_PI;
     else if (heading(1) < 0.0)
       angle += 2*M_PI;
+
+    float degrees = angle * 180.0 / M_PI;
+    ROS_INFO(std::to_string(degrees).c_str());
 
     tf2::Vector3 z_axis_tf2(0.0, 0.0, 1.0);
     tf2::Quaternion orientation(z_axis_tf2, angle);
@@ -448,8 +454,8 @@ bool TouchPlanner::isVisited(bool visited[], const int& N){
 }
 
 
-void TouchPlanner::TSP(const int& N, int **cost, std::vector<int> &path){   
-   
+void TouchPlanner::TSP(const int& N, int **cost, std::vector<int> &path){
+
     static const int M = 1 << (N-1);
     int dp[N][M] ;
     for(int i = 0 ; i < N ;i++){
@@ -475,7 +481,7 @@ void TouchPlanner::TSP(const int& N, int **cost, std::vector<int> &path){
     bool visited[N] = {false};
     int pioneer = 0 ,min = INT_MAX, S = M - 1,temp ;
     path.push_back(0);
- 
+
     while(!isVisited(visited, N)){
         for(int i=1; i<N;i++){
             if(visited[i] == false && (S&(1<<(i-1))) != 0){
@@ -522,10 +528,10 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
         cost[p][k] = distance_calculator(clusters.touch_points[k],clusters.touch_points[p]);
       }
     }
-    
+
     int N = nums+1;
     TSP(N, cost, path);
-    
+
     for(int k = 0; k< nums; k++) {
       clusters.way_touch_association[index][k] = path[k];
     }

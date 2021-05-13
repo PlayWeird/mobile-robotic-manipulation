@@ -122,40 +122,6 @@ bool MotionPlanning::run() {
       break;
     }
   }
-  // auto base_end_effector_poses1 = getFakeTask();
-
-  // switch(move(base_end_effector_poses1)) {
-  // case SUCCEEDED:
-  //   ROS_INFO("Control SUCCEEDED");
-  //   break;
-  // case SERVICE_CALL_ERROR:
-  //   ROS_ERROR("Failed to call move_control service");
-  //   run_successful = false;
-  //   break;
-  // case SERVICE_EXECUTION_ERROR:
-  //   ROS_WARN("Control execution FAILED");
-  //   run_successful = false;
-  //   break;
-  // default:
-  //   break;
-  // }
-  //
-  // auto base_end_effector_poses2 = getFakeTask();
-  // switch(move(base_end_effector_poses2)) {
-  // case SUCCEEDED:
-  //   ROS_INFO("Control SUCCEEDED");
-  //   break;
-  // case SERVICE_CALL_ERROR:
-  //   ROS_ERROR("Failed to call move_control service");
-  //   run_successful = false;
-  //   break;
-  // case SERVICE_EXECUTION_ERROR:
-  //   ROS_WARN("Control execution FAILED");
-  //   run_successful = false;
-  //   break;
-  // default:
-  //   break;
-  // }
 
   return run_successful;
 }
