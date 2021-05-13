@@ -5,7 +5,8 @@
 #include <string>
 #include <memory>
 
-constexpr double PLANNING_EXECUTION_PADDING_TIME = 4.0;
+constexpr double PLANNING_EXECUTION_PADDING_TIME = 3.0;
+constexpr int RETRIES = 3;
 
 
 ArmControl::ArmControl(int argc, char **argv) :
@@ -45,6 +46,9 @@ void ArmControl::init(const std::string &planning_group, const std::string &robo
   move_group_->setGoalTolerance(0.1);
   move_group_->setPlannerId("RRTConnectkConfigDefault");
 
+  bool state_monitor_started = move_group_->startStateMonitor();
+  ROS_INFO_STREAM("State monitor start " << (state_monitor_started ? "SUCCEEDED" : "FAILED"));
+
   // Save default arm configuration
   const robot_state::JointModelGroup* joint_model_group =
     move_group_->getCurrentState()->getJointModelGroup(planning_group);
@@ -60,18 +64,14 @@ bool ArmControl::move(arm_control::ArmControlSrv::Request  &req,
 
   bool moved = false;
   for (const auto &target_end_effector_pose : req.poses) {
-    ros::Duration(PLANNING_EXECUTION_PADDING_TIME).sleep();
-    if(!moveEndEffector(target_end_effector_pose))
-      res.status = PLANNING_ERROR;
+    if(!moveEndEffectorTarget(target_end_effector_pose))
+      res.status = EXECUTION_ERROR;
     else if (!moved)
       moved = true;
   }
 
-  if (moved) {
-    ros::Duration(PLANNING_EXECUTION_PADDING_TIME).sleep();
-    if (!resetToDefaultConfiguration())
-      res.status = CONFIGURATION_RESTORATION_ERROR;
-  }
+  if (moved && !resetToDefaultConfiguration())
+    res.status = CONFIGURATION_RESTORATION_ERROR;
 
   return true;
 }
@@ -86,7 +86,29 @@ void ArmControl::setCurrentState() {
 }
 
 
-bool ArmControl::moveEndEffector(const geometry_msgs::Pose &target_pose) {
+bool ArmControl::moveEndEffector() {
+  bool success = false;
+
+  for (int i = 0; i < RETRIES && !success; ++i) {
+    ros::Duration(PLANNING_EXECUTION_PADDING_TIME).sleep();
+
+    MoveGroupInterface::Plan plan;
+
+    setCurrentState();
+    success = (move_group_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
+    // If there exists a such a plan, then execute the plan and move the gripper
+    if (success)
+      success = (move_group_->execute(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+
+    ROS_INFO_STREAM("Arm execution trial " << i + 1 << (success ? " SUCCEEDED" : " FAILED"));
+  }
+
+  return success;
+}
+
+
+bool ArmControl::moveEndEffectorTarget(const geometry_msgs::Pose &target_pose) {
   geometry_msgs::PoseStamped target_pose_stamped;
   target_pose_stamped.header.frame_id = planning_frame_;
   target_pose_stamped.header.stamp = ros::Time::now();
@@ -95,36 +117,12 @@ bool ArmControl::moveEndEffector(const geometry_msgs::Pose &target_pose) {
   // Set the target pose for the end effector frame in the planning frame
   move_group_->setPoseTarget(target_pose_stamped, end_effector_frame_);
 
-  // Compute a plan to reach the target end effector frame pose
-  MoveGroupInterface::Plan plan;
-
-  setCurrentState();
-  bool success = (move_group_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  // If there exists a such a plan, then execute the plan and move the gripper
-  if (success)
-    move_group_->execute(plan);
-
-  ROS_INFO_STREAM("Planning toward end effector pose " << (success ? "SUCCEEDED" : "FAILED"));
-
-  return success;
+  return moveEndEffector();
 }
 
 
 bool ArmControl::resetToDefaultConfiguration() {
   move_group_->setJointValueTarget(default_arm_configuration_);
 
-  // Compute a plan to reach the default configuration
-  MoveGroupInterface::Plan plan;
-
-  setCurrentState();
-  bool success = (move_group_->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-
-  // If there exists a such a plan, then execute the plan
-  if (success)
-    move_group_->execute(plan);
-
-  ROS_INFO_STREAM("Planning toward default pose " << (success ? "SUCCEEDED" : "FAILED"));
-
-  return success;
+  return moveEndEffector();
 }

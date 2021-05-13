@@ -20,7 +20,7 @@ bool move(arm_control::ArmControlSrv::Request  &req,
 private:
 enum ServiceStatus {
   SUCCEEDED = 0,
-  PLANNING_ERROR = -1,
+  EXECUTION_ERROR = -1,
   CONFIGURATION_RESTORATION_ERROR = -2
 };
 
@@ -28,8 +28,10 @@ void init(const std::string &planning_group, const std::string &robot_namespace)
 
 void setCurrentState();
 
+bool moveEndEffector();
+
 // Move end effector to a target pose in planning frame
-bool moveEndEffector(const geometry_msgs::Pose &target_pose);
+bool moveEndEffectorTarget(const geometry_msgs::Pose &target_pose);
 
 bool resetToDefaultConfiguration();
 
