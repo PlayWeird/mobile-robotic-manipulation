@@ -42,7 +42,7 @@ void ArmControl::init(const std::string &planning_group, const std::string &robo
   move_group_->setMaxAccelerationScalingFactor(1.0);
   move_group_->setPlanningTime(5.0);
   move_group_->setNumPlanningAttempts(100);
-  move_group_->setGoalTolerance(0.05);
+  move_group_->setGoalTolerance(0.01);
   move_group_->setPlannerId("RRTConnectkConfigDefault");
 
   bool state_monitor_started = move_group_->startStateMonitor();

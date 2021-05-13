@@ -2,9 +2,11 @@
 #include "read_targets/read_targets.h"
 #include <eigen3/Eigen/Eigen>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <vector>
-#include <limits.h>
 #include <ros/package.h>
+
+#include <iostream>
+#include <vector>
+#include <climits>
 
 
 using Eigen::Vector3d;
@@ -19,7 +21,7 @@ bool all_true(std::vector<bool> bools);
 
 PlannerMetric::PlannerMetric(float distance_threshold, float angle_threshold) {
   distance_threshold_ = distance_threshold;
-  angle_threshold_ = (angle_threshold * M_PI) / 180;
+  angle_threshold_ = (angle_threshold * M_PI) / 180.0;
 }
 
 
@@ -35,13 +37,7 @@ float PlannerMetric::cost(geometry_msgs::Pose way_point,
   // Compute angle cost
   double way_touch_vec_x = touch_point.position.x - way_point.position.x;
   double way_touch_vec_y = touch_point.position.y - way_point.position.y;
-
   double angle = atan2(way_touch_vec_y, way_touch_vec_x);
-
-  if (way_touch_vec_x < 0.0)
-    angle += M_PI;
-  else if (way_touch_vec_y < 0.0)
-    angle += 2*M_PI;
 
   tf2::Vector3 z_axis_tf2(0.0, 0.0, 1.0);
   tf2::Quaternion touch_point_orientation(z_axis_tf2, angle);
@@ -74,14 +70,16 @@ void TouchPlanner::init() {
 
 
 Task TouchPlanner::nextTask() {
-
   Task task;
   task.base_pose = clusters_.way_points[task_cluster_idx];
+
   for(int idx=0; idx < clusters_.way_touch_association[task_cluster_idx].size(); idx++) {
     int touch_idx = clusters_.way_touch_association[task_cluster_idx][idx];
     task.end_effector_poses.push_back(clusters_.touch_points[touch_idx]);
   }
-  ROS_INFO(("Sending planning task: " + std::to_string(task_cluster_idx)).c_str());
+
+  ROS_INFO_STREAM("Sending planning task: " << task_cluster_idx);
+
   task_cluster_idx++;
   return task;
 }
@@ -147,13 +145,6 @@ PoseList TouchPlanner::getWayPoints() {
     auto heading = vec.cross(z_axis);
 
     double angle = atan2(heading(1), heading(0));
-    if (heading(0) < 0.0)
-      angle += M_PI;
-    else if (heading(1) < 0.0)
-      angle += 2*M_PI;
-
-    float degrees = angle * 180.0 / M_PI;
-    ROS_INFO(std::to_string(degrees).c_str());
 
     tf2::Vector3 z_axis_tf2(0.0, 0.0, 1.0);
     tf2::Quaternion orientation(z_axis_tf2, angle);
@@ -176,6 +167,19 @@ TouchPlanner::Clusters TouchPlanner::getClusters() {
   const auto way_points = getWayPoints();
 
   return clustering(way_points);
+}
+
+
+void TouchPlanner::printClusters(Clusters clusters) {
+  for(int i=0; i < clusters.way_points.size(); i++) {
+    auto wp_pose = clusters.way_points[i];
+    std::cout << "(" << wp_pose.position.x << ", " << wp_pose.position.y << ")" << std::endl;
+    for(int j=0; j < clusters.way_touch_association[i].size(); j++) {
+      auto pose = clusters.touch_points[clusters.way_touch_association[i][j]];
+      std::cout << "(" << pose.position.x << ", " << pose.position.y << "),";
+    }
+    std::cout << std::endl;
+  }
 }
 
 
@@ -218,16 +222,7 @@ TouchPlanner::Clusters TouchPlanner::clustering(const PoseList &way_points){
   // TODO: fix segfault in sorting cluster
   // sort_clusters_touchpoints(clusters);
 
-  // PRINT-OUT TO VISUALIZE FINAL CLUSTER IN DESMOS
-  // for(int i=0; i < clusters.way_points.size(); i++) {
-  //   auto wp_pose = clusters.way_points[i];
-  //   std::cout << "(" << wp_pose.position.x << ", " << wp_pose.position.y << ")" << std::endl;
-  //   for(int j=0; j < clusters.way_touch_association[i].size(); j++) {
-  //     auto pose = clusters.touch_points[clusters.way_touch_association[i][j]];
-  //     std::cout << "(" << pose.position.x << ", " << pose.position.y << "),";
-  //   }
-  //   std::cout << std::endl;
-  // }
+  // printClusters(clusters);
 
   return clusters;
 }
@@ -445,58 +440,58 @@ void TouchPlanner::package_clusters(
 }
 
 bool TouchPlanner::isVisited(bool visited[], const int& N){
-    for(int i = 1 ; i<N ;i++){
-        if(visited[i] == false){
-            return false;
-        }
+  for(int i = 1; i<N; i++) {
+    if(visited[i] == false) {
+      return false;
     }
-    return true;
+  }
+  return true;
 }
 
 
 void TouchPlanner::TSP(const int& N, int **cost, std::vector<int> &path){
 
-    static const int M = 1 << (N-1);
-    int dp[N][M] ;
-    for(int i = 0 ; i < N ;i++){
-        dp[i][0] = cost[i][0];
-    }
-    for(int j = 1 ; j < M ;j++){
-        for(int i = 0 ; i < N ;i++ ){
-            dp[i][j] = INT_MAX;
-            if( ((j >> (i-1)) & 1) == 1){
-                continue;
-            }
-            for(int k = 1 ; k < N ; k++){
-                if( ((j >> (k-1)) & 1) == 0){
-                    continue;
-                }
-                if( dp[i][j] > cost[i][k] + dp[k][j^(1<<(k-1))]){
-                    dp[i][j] = cost[i][k] + dp[k][j^(1<<(k-1))];
-                }
-            }
+  static const int M = 1 << (N-1);
+  int dp[N][M];
+  for(int i = 0; i < N; i++) {
+    dp[i][0] = cost[i][0];
+  }
+  for(int j = 1; j < M; j++) {
+    for(int i = 0; i < N; i++ ) {
+      dp[i][j] = INT_MAX;
+      if( ((j >> (i-1)) & 1) == 1) {
+        continue;
+      }
+      for(int k = 1; k < N; k++) {
+        if( ((j >> (k-1)) & 1) == 0) {
+          continue;
         }
-    }
-
-    bool visited[N] = {false};
-    int pioneer = 0 ,min = INT_MAX, S = M - 1,temp ;
-    path.push_back(0);
-
-    while(!isVisited(visited, N)){
-        for(int i=1; i<N;i++){
-            if(visited[i] == false && (S&(1<<(i-1))) != 0){
-                if(min > cost[i][pioneer] + dp[i][(S^(1<<(i-1)))]){
-                    min = cost[i][pioneer] + dp[i][(S^(1<<(i-1)))] ;
-                    temp = i;
-                }
-            }
+        if( dp[i][j] > cost[i][k] + dp[k][j^(1<<(k-1))]) {
+          dp[i][j] = cost[i][k] + dp[k][j^(1<<(k-1))];
         }
-        pioneer = temp;
-        path.push_back(pioneer);
-        visited[pioneer] = true;
-        S = S ^ (1<<(pioneer - 1));
-        min = INT_MAX;
+      }
     }
+  }
+
+  bool visited[N] = {false};
+  int pioneer = 0,min = INT_MAX, S = M - 1,temp;
+  path.push_back(0);
+
+  while(!isVisited(visited, N)) {
+    for(int i=1; i<N; i++) {
+      if(visited[i] == false && (S&(1<<(i-1))) != 0) {
+        if(min > cost[i][pioneer] + dp[i][(S^(1<<(i-1)))]) {
+          min = cost[i][pioneer] + dp[i][(S^(1<<(i-1)))];
+          temp = i;
+        }
+      }
+    }
+    pioneer = temp;
+    path.push_back(pioneer);
+    visited[pioneer] = true;
+    S = S ^ (1<<(pioneer - 1));
+    min = INT_MAX;
+  }
 }
 
 
@@ -514,7 +509,7 @@ void TouchPlanner::sort_clusters_touchpoints(Clusters &clusters){
 
     cost = new int *[nums+1];
     for(int i = 0; i < nums+1; i++)
-        cost[i] = new int[nums+1];
+      cost[i] = new int[nums+1];
 
     cost[0][0]=0;
     for(int k = 1; k < nums+1; k++) {
