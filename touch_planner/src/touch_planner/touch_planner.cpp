@@ -86,7 +86,7 @@ Task TouchPlanner::nextTask() {
 }
 
 bool TouchPlanner::has_next_task(){
-  int max_index = clusters_.way_touch_association[task_cluster_idx].size();
+  int max_index = clusters_.way_touch_association.size();
   return task_cluster_idx < max_index;
 }
 
