@@ -1,6 +1,6 @@
 # mobile-robotic-manipulation
 
-A project for CS 491 Autonomous Mobile Manipulation class at the University of Nevada, Reno.
+A project for CS 491/691 Autonomous Mobile Manipulation class at the University of Nevada, Reno.
 
 # Important files
 
@@ -10,9 +10,9 @@ A project for CS 491 Autonomous Mobile Manipulation class at the University of N
 
 ## First time setting up only
 
-Setup a workspace with the instructions at [Autonomous Movile Manipulation GitHub repository](https://github.com/robowork/autonomous_mobile_manipulation/tree/project).
+Setup a workspace with the instructions at [Autonomous Mobile Manipulation GitHub repository](https://github.com/robowork/autonomous_mobile_manipulation/tree/project).
 
-Edit the file `autonomous_movile_manipulation/robowork_moveit_config/launch/trajectory_execution.launch.xml` on line 16 from
+Edit the file `autonomous_mobile_manipulation/robowork_moveit_config/launch/trajectory_execution.launch.xml` on line 16 from
 
 ```xml
 <param name="trajectory_execution/allowed_start_tolerance" value="0.01"/>
