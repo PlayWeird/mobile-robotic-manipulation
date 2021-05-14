@@ -14,7 +14,7 @@ using Eigen::Matrix3d;
 using Eigen::Matrix4d;
 using Eigen::Quaterniond;
 
-constexpr double END_EFFECTOR_OFFSET = -0.043;
+constexpr double END_EFFECTOR_OFFSET = -0.1;
 
 
 PoseVector read_targets(const std::string &file_path, const std::string &file_path2) {

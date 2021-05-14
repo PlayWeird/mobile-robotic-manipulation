@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include "touch_planner.h"
 
-constexpr float DISTANCE_THRESHOLD = 1.7;
-constexpr float ANGLE_DEGREE_THRESHOLD = 15.0;
+constexpr float DISTANCE_THRESHOLD = 2.0;
+constexpr float ANGLE_DEGREE_THRESHOLD = 10.0;
 
 
 int main(int argc, char **argv){
