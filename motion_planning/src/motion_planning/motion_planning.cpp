@@ -46,7 +46,7 @@ MotionPlanning::ServiceStatus MotionPlanning::move(const Task &base_end_effector
   // Prepare service call message
   move_control::MoveControlSrv move_control_srv;
   move_control_srv.request.base_pose = base_end_effector_poses.base_pose;
-  // move_control_srv.request.arm_poses = base_end_effector_poses.end_effector_poses;
+  move_control_srv.request.arm_poses = base_end_effector_poses.end_effector_poses;
 
   // If cannot call service, return error
   if (!control_clt_.call(move_control_srv)) return SERVICE_CALL_ERROR;
